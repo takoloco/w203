@@ -1,0 +1,100 @@
+---
+title: 'Unit 3 Homework 2: Probability Theory'
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Gas Station Analytics
+
+### (a) Probability that the next customer will request regular gas and fill the tank
+
+Probability that the next customer use reulgar gas: 40%
+Probability that will fill the tank: 30%
+
+```{r 1-a}
+(q1a <- 0.4 * 0.3)
+```
+
+12%
+
+### (b) Probability that the next customer will fill the tank
+
+#### Regular gas and fill the tank
+
+Probability that the next customer use reulgar gas: 40%
+Probability that will fill the tank: 30%
+
+```{r 1-b-reg}
+reg <- 0.4 * 0.3
+```
+
+#### Mid-grade gas and fill the tank
+
+Probability that the next customer use mid-grade gas: 35%
+Probability that will fill the tank: 60%
+
+```{r 1-b-mid}
+mid <- 0.35 * 0.6
+```
+
+#### Premium gas and fill the tank
+
+Probability that the next customer use premium gas: 25%
+Probability that will fill the tank: 50%
+
+```{r 1-b-premium}
+premium <- 0.25 * 0.5
+```
+
+```{r 1-b-sol}
+(q1b <- reg + mid + premium)
+```
+
+45.5%
+
+### (c) Conditional probability given the next customer fills the tank, they use regular gas
+
+We know the probabilities of the next customer using regular gas and filling the tank and the total probability of the next customer filling the tank from (a) and (b).
+
+```{r 1-c}
+(q1c <- q1a/q1b)
+```
+
+26.4%
+
+## 2. The Toy Bin
+
+```{r q2-setup}
+library(VennDiagram)
+```
+
+### (a) Area diagram representing events
+
+```{r 2-a}
+grid.newpage()
+#draw.triple.venn(area1 = 1/2, area2 = 1/2, area3 = 1/3, n12 = 1/4, n13 = 1/6, n23 = 1/6, n123 = 1/12, category = c("Red", "Waterproof", "Cool"),  fill = c("red", "light blue", "green"), lty = ("blank"), alpha = rep(0.5, 1),  euler.d = TRUE, sep.dist = 0.03)
+draw.quad.venn(area1 = 1/2, area2 = 1/2, area3 = 1/3, area4 = 1/6, n12 = 1/4, n13 = 1/6, n14 = 0, n23 = 1/6, n24 = 0, n34 = 0, n123 = 1/12, n1234 = 0, n124 = 0, n134 = 0, n234 = 0, category = c("Red", "Waterproof", "Cool", "Not Red, Waterproof nor Cool"),  fill = c("red", "light blue", "green", "yellow"), lty = ("blank"), alpha = rep(0.5, 1),  euler.d = TRUE, sep.dist = 0.03)
+```
+
+12%
+
+\begin{figure}[h]
+\includegraphics[width=0.5\textwidth, inner]
+```{r test}
+grid.newpage()
+#draw.triple.venn(area1 = 1/2, area2 = 1/2, area3 = 1/3, n12 = 1/4, n13 = 1/6, n23 = 1/6, n123 = 1/12, category = c("Red", "Waterproof", "Cool"),  fill = c("red", "light blue", "green"), lty = ("blank"), alpha = rep(0.5, 1),  euler.d = TRUE, sep.dist = 0.03)
+draw.quad.venn(area1 = 1/2, area2 = 1/2, area3 = 1/3, area4 = 1/6, n12 = 1/4, n13 = 1/6, n14 = 0, n23 = 1/6, n24 = 0, n34 = 0, n123 = 1/12, n1234 = 0, n124 = 0, n134 = 0, n234 = 0, category = c("Red", "Waterproof", "Cool", "Not Red, Waterproof nor Cool"),  fill = c("red", "light blue", "green", "yellow"), lty = ("blank"), alpha = rep(0.5, 1),  euler.d = TRUE, sep.dist = 0.03)
+```
+\caption{Caption}
+\label{fig:figure2}
+\end{figure}
+
+### (b) 
+
+
+### (c) 
+
