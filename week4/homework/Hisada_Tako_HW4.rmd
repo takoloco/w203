@@ -1,0 +1,40 @@
+---
+title: 'Unit 4 Homework: Random Variables'
+author: "Tako Hisada"
+date: "9/28/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Best Game in the Casino
+
+### (a) How much do you get pai if the coin comes up heads 3 times?
+
+### (b) Cumulative probability function for winning from the game
+
+## 2. Processing Pasta
+
+### (a) Cumulative probability function of L
+
+### (b) Expected length of the pasta E(L)
+
+## 3. The Warranty is Worth It
+
+### (a) Expected payout from the contract, E(X) = E(g(T)) using the expression for the expectation of a function of a random variable
+
+### (b) E(X) another way, by first characterizing the random variable X.
+
+#### i. 
+#### ii. 
+#### iii. 
+#### iV. 
+#### v.
+
+## 4. The Baseline for Measuring Deviations
+
+### (a) Expression for E(Y) and use properties of expectation 
+### (b) Taking a partial derivative with respect to t, compute the value of t that minimizes E(Y)
+### (c) What is the value of E(Y) for this choice of t?
