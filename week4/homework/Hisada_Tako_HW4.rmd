@@ -13,21 +13,94 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### (a) How much do you get pai if the coin comes up heads 3 times?
 
+\[
+X =
+\Bigg\{
+  \begin{tabular}{cc}
+    \$0 & 0 heads \\
+    \$2 & 1 head \\
+    \$4 & 2 heads \\
+    \$x & 3 heads \\
+  \end{tabular}
+\]
+
+\[
+P(X) =
+\Bigg\{
+  \begin{tabular}{cc}
+    1/6 & 0 heads \\
+    1/3 & 1 head \\
+    1/3 & 2 heads \\
+    1/6 & 3 heads \\
+  \end{tabular}
+\]
+
+\[ E(X) = 0 * \frac{1}{6} + 2 * \frac{1}{3} + 4 * \frac{1}{3} + x * \frac{1}{6} = 6 \]
+\[ \frac{x}{6} = 6 - \frac{2}{3} - \frac{4}{3} = 4 \]
+\[ x = 24 \]
+
+You would get paid $24 if the coin comes up heads 3 times.
+
 ### (b) Cumulative probability function for winning from the game
+
+\[
+F(X) = P(X<=x) =
+\Bigg\{
+  \begin{tabular}{cc}
+    1/6 & x = 0 \\
+    1/2 & x = 1 \\
+    5/6 & x = 2 \\
+    1 & x = 3 \\
+  \end{tabular}
+\]
 
 ## 2. Processing Pasta
 
 ### (a) Cumulative probability function of L
 
+\[
+F(L) = P(L<=l) = \int_{-\infty}^{l} f(y)dy = \int_{0}^{l} \frac{y}{2}dy = \frac{y^2}{4} = \frac{l^2}{4}
+\]
+
 ### (b) Expected length of the pasta E(L)
+
+\[
+E(L) = \int_{-\infty}^{\infty} l*f(l)dl = \int_{0}^{2} l*\frac{l}{2} = \int_{0}^{2} \frac{l^2}{2} = \frac{l^3}{2*3} = \frac{l^3}{6} |_{0}^{2} = \frac{2^3}{6} - 0 = \frac{4}{3}
+\]
 
 ## 3. The Warranty is Worth It
 
 ### (a) Expected payout from the contract, E(X) = E(g(T)) using the expression for the expectation of a function of a random variable
 
+\[
+f(x) = \Bigg\{
+  \begin{tabular}{cc}
+    1 0<=x<=1 \\
+    0 Otherwise \\
+  \end{tabular}
+\]
+\[
+E(X) = E(g(T)) = \int_{-\infty}^{\infty} g(t)*f(x)dx = \int_{0}^{1} 100(1-t)^\frac{1}{2} * 1dx = 100 \int_{0}^{1} (1-t)^\frac{1}{2} * dx = -100 * \frac{2}{3}(1-x)^\frac{3}{2} = -\frac{200}{3}(1-x)^\frac{3}{2}|_{0}^{1} = \frac{200}{3}
+\]
+
+$66.67
+
 ### (b) E(X) another way, by first characterizing the random variable X.
 
-#### i. 
+#### i. Value for T that results in the payoff X = x 
+
+\[ X = x \]
+
+\[
+F(X) = P(X<=x) =
+\Bigg\{
+  \begin{tabular}{cc}
+    0 x<0 \\
+    100(1-t)^(1/2) 0<= x <= 100 \\
+  \end{tabular}
+\]
+
+
 #### ii. 
 #### iii. 
 #### iV. 
