@@ -79,9 +79,12 @@ f(x) = \Bigg\{
     0 Otherwise \\
   \end{tabular}
 \]
+
 \[
-E(X) = E(g(T)) = \int_{-\infty}^{\infty} g(t)*f(x)dx = \int_{0}^{1} 100(1-t)^\frac{1}{2} * 1dx = 100 \int_{0}^{1} (1-t)^\frac{1}{2} * dx = -100 * \frac{2}{3}(1-x)^\frac{3}{2} = -\frac{200}{3}(1-x)^\frac{3}{2}|_{0}^{1} = \frac{200}{3}
+E(X) = E(g(T)) = \int_{-\infty}^{\infty} g(t)*f(x)dx = \int_{0}^{1} 100(1-t)^\frac{1}{2} * 1dx = 100 \int_{0}^{1} (1-t)^\frac{1}{2} * dx
 \]
+
+\[ = -100 * \frac{2}{3}(1-x)^\frac{3}{2} = -\frac{200}{3}(1-x)^\frac{3}{2}|_{0}^{1} = \frac{200}{3} \]
 
 $66.67
 
@@ -95,16 +98,35 @@ $66.67
 F(X) = P(X<=x) =
 \Bigg\{
   \begin{tabular}{cc}
-    0 x<0 \\
-    100(1-t)^(1/2) 0<= x <= 100 \\
+    0 & x<0 \\
+    100(1-t)\^(1/2) & 0<= x <= 100 \\
   \end{tabular}
 \]
 
+\[ 100(1-t)^\frac{1}{2} = x \]
+\[ (1-t)^\frac{1}{2} = \frac{x}{100} \]
+\[ \sqrt(1-t) = \frac{x}{100} \]
+\[ 1-t = \frac{x^2}{10000}\]
+\[ t = 1 - \frac{x^2}{10000} \]
 
 #### ii. 
+
+\[ X <= x \]
+\[ t <= 1 - \frac{x^2}{10000} \]
+
 #### iii. 
-#### iV. 
+
+\[ F(X) = P(X <= x) = \int_0^{x} f(y)dy = \int_0^{x} 1-\frac{x^2}{10000}dy = x - \frac{x^3}{30000} \]
+
+
+#### iv.
+
+\[ F'(X) = 1 - \frac{x^2}{10000} \]
+
 #### v.
+
+\[ E(X) = \int_{-\infty}^{\infty} x*f(x)dx = \int_{0}^{100} x*(1-\frac{x^2}{10000}) dx \]
+\[ = 2x^2-\frac{x^4}{40000} |_{0}^{100} = 100 - \frac{1000000}{10000} \]
 
 ## 4. The Baseline for Measuring Deviations
 
