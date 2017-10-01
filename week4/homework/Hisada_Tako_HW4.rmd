@@ -1,7 +1,7 @@
 ---
 title: 'Unit 4 Homework: Random Variables'
 author: "Tako Hisada"
-date: "9/28/2017"
+date: "10/01/2017"
 output: pdf_document
 ---
 
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 1. Best Game in the Casino
 
-### (a) How much do you get pai if the coin comes up heads 3 times?
+### (a) How much do you get paid if the coin comes up heads 3 times?
 
 \[
 X =
@@ -28,39 +28,42 @@ X =
 P(X) =
 \Bigg\{
   \begin{tabular}{cc}
-    1/6 & 0 heads \\
-    1/3 & 1 head \\
-    1/3 & 2 heads \\
-    1/6 & 3 heads \\
+    1/8 & 0 heads \\
+    1/4 & 1 head \\
+    1/4 & 2 heads \\
+    1/8 & 3 heads \\
   \end{tabular}
 \]
 
-\[ E(X) = 0 * \frac{1}{6} + 2 * \frac{1}{3} + 4 * \frac{1}{3} + x * \frac{1}{6} = 6 \]
-\[ \frac{x}{6} = 6 - \frac{2}{3} - \frac{4}{3} = 4 \]
-\[ x = 24 \]
+```{r q1a,echo=FALSE}
+ex = 6
+payout = (ex - 0*1/8 - 2*1/4 - 4*1/4)*8
+```
 
-You would get paid $24 if the coin comes up heads 3 times.
+\[ E(X) = 0 * \frac{1}{8} + 2 * \frac{1}{4} + 4 * \frac{1}{4} + x * \frac{1}{8} = 6 \]
+\[ \frac{x}{8} = 6 - \frac{2}{4} - \frac{4}{4} = \frac{18}{4} \]
+\[ x = 36 \]
+
+You would get paid $36 if the coin comes up heads 3 times.
 
 ### (b) Cumulative probability function for winning from the game
 
 \[
-F(X) = P(X<=x) =
-\Bigg\{
-  \begin{tabular}{cc}
-    1/6 & x = 0 \\
-    1/2 & x = 1 \\
-    5/6 & x = 2 \\
-    1 & x = 3 \\
-  \end{tabular}
+  F(X) = P(X \leq x) =
+  \Bigg\{
+    \begin{tabular}{cc}
+      1/8 & x = 0 \\
+      3/8 & x = 1 \\
+      5/8 & x = 2 \\
+      1 & x = 3 \\
+    \end{tabular} 
 \]
 
 ## 2. Processing Pasta
 
 ### (a) Cumulative probability function of L
 
-\[
-F(L) = P(L<=l) = \int_{-\infty}^{l} f(y)dy = \int_{0}^{l} \frac{y}{2}dy = \frac{y^2}{4} = \frac{l^2}{4}
-\]
+\[ F(L) = P(L \leq l) = \int_{-\infty}^{l} f(y)dy = \int_{0}^{l} \frac{y}{2}dy = \frac{y^2}{4} = \frac{l^2}{4} \]
 
 ### (b) Expected length of the pasta E(L)
 
@@ -75,7 +78,7 @@ E(L) = \int_{-\infty}^{\infty} l*f(l)dl = \int_{0}^{2} l*\frac{l}{2} = \int_{0}^
 \[
 f(x) = \Bigg\{
   \begin{tabular}{cc}
-    1 0<=x<=1 \\
+    1 0 $\leq$ x $\leq$ 1 \\
     0 Otherwise \\
   \end{tabular}
 \]
@@ -84,7 +87,7 @@ f(x) = \Bigg\{
 E(X) = E(g(T)) = \int_{-\infty}^{\infty} g(t)*f(x)dx = \int_{0}^{1} 100(1-t)^\frac{1}{2} * 1dx = 100 \int_{0}^{1} (1-t)^\frac{1}{2} * dx
 \]
 
-\[ = -100 * \frac{2}{3}(1-x)^\frac{3}{2} = -\frac{200}{3}(1-x)^\frac{3}{2}|_{0}^{1} = \frac{200}{3} \]
+\[ = -100 * \frac{2}{3}(1-t)^\frac{3}{2} = -\frac{200}{3}(1-t)^\frac{3}{2}|_{0}^{1} = \frac{200}{3} \]
 
 $66.67
 
@@ -95,41 +98,55 @@ $66.67
 \[ X = x \]
 
 \[
-F(X) = P(X<=x) =
+F(X) = P(X \leq x) =
 \Bigg\{
   \begin{tabular}{cc}
     0 & x<0 \\
-    100(1-t)\^(1/2) & 0<= x <= 100 \\
+    $\sqrt{100(1-t)}$ & 0 $\leq$ x $\leq$ 100 \\
   \end{tabular}
 \]
 
 \[ 100(1-t)^\frac{1}{2} = x \]
-\[ (1-t)^\frac{1}{2} = \frac{x}{100} \]
+\[(1-t)^\frac{1}{2} = \frac{x}{100} \]
 \[ \sqrt(1-t) = \frac{x}{100} \]
 \[ 1-t = \frac{x^2}{10000}\]
 \[ t = 1 - \frac{x^2}{10000} \]
 
-#### ii. 
+#### ii. Condition for T that is equivalent to X $\leq$ x.
 
-\[ X <= x \]
-\[ t <= 1 - \frac{x^2}{10000} \]
+From i), we know
+\[ t = 1 - \frac{x^2}{10000} \]
 
-#### iii. 
+The T equivalent of X $\leq$ x would be
+\[ T \geq 1 - \frac{x^2}{10000} \]
 
-\[ F(X) = P(X <= x) = \int_0^{x} f(y)dy = \int_0^{x} 1-\frac{x^2}{10000}dy = x - \frac{x^3}{30000} \]
+#### iii. Probability that X $\leq$ x using the condition above (cumulative probability function of X)
 
+\[ F(Y) = P(X \leq x) = \int_0^{x} f(y)dy = \int_0^{x} 1-\frac{y^2}{10000}dy = x - \frac{x^3}{30000} \]
 
-#### iv.
+#### iv. Take a derivative to compute the probability density function for X
 
-\[ F'(X) = 1 - \frac{x^2}{10000} \]
+\[ f(x) = F'(X) = (x - \frac{x^3}{30000})dx = 1 - \frac{x^2}{10000} \]
 
-#### v.
+#### v. Use the pdf of X to compute E(X)
 
 \[ E(X) = \int_{-\infty}^{\infty} x*f(x)dx = \int_{0}^{100} x*(1-\frac{x^2}{10000}) dx \]
-\[ = 2x^2-\frac{x^4}{40000} |_{0}^{100} = 100 - \frac{1000000}{10000} \]
+\[ = \frac{x^2}{2}-\frac{x^4}{40000} |_{0}^{100} = 10000 - \frac{1000000}{40000} = 2500 \]
+
+This is clearly wrong..
 
 ## 4. The Baseline for Measuring Deviations
 
 ### (a) Expression for E(Y) and use properties of expectation 
+
+\[ E(Y) = \int_{-\infty}^{\infty} (x-t)^2 f(x)dx = \frac{x^3*f(x)}{3} -x^2t * f(x) + t^2 * f(x) \]
+
 ### (b) Taking a partial derivative with respect to t, compute the value of t that minimizes E(Y)
+
+\[ \frac{d}{dt}(\frac{x^3*f(x)}{3} -x^2t * f(x) + t^2 * f(x)) = t*f(x) - x^2*f(x) \]
+\[ t*f(x) = x^2*f(x) \]
+\[ t = x^2 \]
+
 ### (c) What is the value of E(Y) for this choice of t?
+
+\[ E(Y) = \frac{x^3*f(x)}{3} -x^2t * f(x) + t^2 * f(x) = \frac{x^3*f(x)}{3} -x^4 * f(x) + x^4 * f(x) \]
