@@ -101,7 +101,7 @@ $66.67
 F(X) = P(X \leq x) =
 \Bigg\{
   \begin{tabular}{cc}
-    0 & x<0 \\
+    0 & Otherwise \\
     $\sqrt{100(1-t)}$ & 0 $\leq$ x $\leq$ 100 \\
   \end{tabular}
 \]
@@ -114,39 +114,55 @@ F(X) = P(X \leq x) =
 
 #### ii. Condition for T that is equivalent to X $\leq$ x.
 
-From i), we know
-\[ t = 1 - \frac{x^2}{10000} \]
+\i) gives us value for T in the case of $P(T \geq g^{-1}(x))$. We are however looking for a condition equivalent to X $\leq$ x for T. Therefore the condition we are looking is as below:
 
-The T equivalent of X $\leq$ x would be
-\[ T \geq 1 - \frac{x^2}{10000} \]
+\[ P(T \leq g^{-1}(x)) \]
+
+This tells us that the we are interested in the life span of the server less than or equal to $g^{-1}(x)$.
+
 
 #### iii. Probability that X $\leq$ x using the condition above (cumulative probability function of X)
 
-\[ F(Y) = P(X \leq x) = \int_0^{x} f(y)dy = \int_0^{x} 1-\frac{y^2}{10000}dy = x - \frac{x^3}{30000} \]
+\[ t = 1 - \frac{x^2}{10000} \]
+
+The above equation from i) gives us $P(T \geq g^{-1}(x))$. However as we are trying to look at this from the perspective of $P(T \leq g^{-1}(x))$ as seen in ii), we will need to invert this in respect to 1 as below:
+
+\[ F(X) = \frac{x^2}{10000} \]
 
 #### iv. Take a derivative to compute the probability density function for X
 
-\[ f(x) = F'(X) = (x - \frac{x^3}{30000})dx = 1 - \frac{x^2}{10000} \]
+\[ f(x) = F'(X) = (\frac{x^2}{10000})dx = \frac{x}{5000} \]
 
 #### v. Use the pdf of X to compute E(X)
 
-\[ E(X) = \int_{-\infty}^{\infty} x*f(x)dx = \int_{0}^{100} x*(1-\frac{x^2}{10000}) dx \]
-\[ = \frac{x^2}{2}-\frac{x^4}{40000} |_{0}^{100} = 10000 - \frac{1000000}{40000} = 2500 \]
+\[ E(X) = \int_{-\infty}^{\infty} x*f(x)dx = \int_{0}^{100} x*(\frac{x}{5000}) dx \]
+\[ = \frac{x^3}{15000} |_{0}^{100} = \frac{1000000}{15000} = \frac{200}{3} \]
 
-This is clearly wrong..
+$66.67
+
+This is matches what we got for (a).
 
 ## 4. The Baseline for Measuring Deviations
 
 ### (a) Expression for E(Y) and use properties of expectation 
 
-\[ E(Y) = \int_{-\infty}^{\infty} (x-t)^2 f(x)dx = \frac{x^3*f(x)}{3} -x^2t * f(x) + t^2 * f(x) \]
+\[ E(Y) = E[(X-t)^2] = E[X^2] - 2tE[X] + t^2] \]
 
 ### (b) Taking a partial derivative with respect to t, compute the value of t that minimizes E(Y)
 
-\[ \frac{d}{dt}(\frac{x^3*f(x)}{3} -x^2t * f(x) + t^2 * f(x)) = t*f(x) - x^2*f(x) \]
-\[ t*f(x) = x^2*f(x) \]
-\[ t = x^2 \]
+(b)
+\[ E'[(X-t)^2] =- 2E[X] + 2t = 0 \]
+\[ t = E[X] \]
+
+\[ \frac{d}{dt}(E[X^2] - 2tE[X] + t^2])  = 2t - 2E[X] \]
+
+Since we are trying to find the value of that miniminizes E(Y)
+
+\[ 2t - 2E[X] = 0 \]
+\[ t = E[X] \]
 
 ### (c) What is the value of E(Y) for this choice of t?
 
-\[ E(Y) = \frac{x^3*f(x)}{3} -x^2t * f(x) + t^2 * f(x) = \frac{x^3*f(x)}{3} -x^4 * f(x) + x^4 * f(x) \]
+\[ E(Y) = E[X^2] - 2tE[X] + t^2  = E[X^2] - 2E[X]E[X] + E[X]^2 = E[X^2] - E[X]^2 \]
+
+This is the variance of X V(X)
