@@ -1,0 +1,61 @@
+---
+title: "Unit 6 Pre-Class Warm-up"
+author: "Tako Hisada"
+date: "10/8/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setup
+
+```{r pce6_1}
+n = 3
+p = 0.5
+
+sample(c(0, 1), 3, prob = c((1-p), p), replace = TRUE)
+
+trials = rbinom(n, size=3, prob=0.5)
+```
+
+# The Fair Coin
+
+
+```{r pce6_2}
+# Initialize variables
+# Sample Size
+n = 3
+
+# Probability
+p = 0.5
+
+# Number of trials
+t = 100000
+
+execute_study <- function(n, p) {
+  mean(sample(c(0, 1), n, prob = c((1-p), p), replace = TRUE))
+}
+
+# Vector for storing results
+vec = c()
+
+# Run execute_study 100,000 times
+for(i in 1:t) {
+  vec[i] = execute_study(3, 0.5)  
+}
+
+# Calculate mean
+(vec_mu = mean(vec))
+
+# Calculate standard deviation
+(vec_sd = sd(vec))
+
+hist(vec, 
+     main = "Simulated Sample Means from Repeated Sampling",
+     xlab = "sample mean")
+
+```
+
+Since n = 3, there are only 4 possible choices of $\bar{X}$ values: $[0, \frac{1}{3}, \frac{2}{3}, 1]$. The histogram has a normal distribution, concentrating in the middle 2 values that are close to the $\mu$ value.
