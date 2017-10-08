@@ -15,23 +15,40 @@ knitr::opts_chunk$set(echo = TRUE)
 library(MASS)
 set.seed(898)
 ```
+We know SD of Wingspan is 4. Since $V(X) = \sqrt(\sigma_X^2)$, $V(W) = 4^2 = 16$.
+
+\[ V(V) = V[h(W)] = V[\frac{1}{2}w + U] = a^2*\sigma^2_W = (\frac{1}{2})^2 * 4^2 = 4 \]
+
+We know $\mu_W$ is 10. From this, we can compute $E(h(W))$:
+
+\[ E(V) = E[h(W)] = E[\frac{1}{2}w + U] = \frac{1}{2} * 10 + U = 5 + U \]
+
+Now we want to compute $Cov(W, V)$.
+
+\[ Cov(W, V) = E(WV) - \mu_W * \mu_V \]
+
+\[ E(WV) = \int_{-\infty}^{\infty}\int_{-\infty}^{\infty}wvf_{W, V}(w, v)dwdv = \int_{-\infty}^{\infty}wf_{W}(w)dw\int_{-\infty}^{\infty}vf_{V}(v)dv \]
 
 ```{r q1}
 # Wingspan
 w = rnorm(100, mean = 10, sd = 4)
+mu_w = 10
+sd_w = 4
+v_w = sd_w^2
+
 # Velocity
 v = 0.5 * w + rnorm(100)
 
-# Our mus
-mu = c(10, 5)
-
-Sigma = matrix(c(16, 8, 8, 5), 2, 2)
-
+#Sigma = matrix(c(16, 8, 8, 5), 2, 2)
 #mvnorm()
 ```
 
 
 # 2. Broken Rulers
+
+## a. Conditional expectation of Y given X, E(Y|X)
+
+\[ E(Y|X) = \int_{0}^{1}\int_{0}^{1-x}f_{Y|X(y|x)} \]
 
 ```{r q2}
 ```
@@ -76,7 +93,6 @@ compExUniform <- function(x) {
   }
   sum
 }
-compExUniform(10)
 
 ex = compExUniform(5)
 ey = compExUniform(10)
@@ -121,6 +137,14 @@ varxy = varx + vary - 2*cov_xy
 
 \[ 37\frac{11}{12} \]
 
+However we need to multiple this by 5 as we are interested in finding out the variance of the total waiting time
+
+```{r q2b_4}
+q2b = 5^2 * varxy
+```
+
+\[ 947\frac{11}{12} \]
+
 ## c. Expected value of the difference between the total evening waiting time and the total morning waiting time over all 5 days
 
 \[ E(X-Y) \]
@@ -146,6 +170,63 @@ q3c = exy_diff*5
 \[ E(X+Y) = 2.5 * 5 = 12.5 \]
 
 12.5 minutes
+
+## d. Variance of the difference between the total evening time and the total morning waiting time over all 5 days
+
+\[ V(X-Y) = V(X) + V(Y) \]
+\[ V(X) = E(X^2) - E(X)^2 \]
+\[ V(Y) = E(Y^2) - E(Y)^2 \]
+
+```{r q3d_1}
+
+compExUniform <- function(x) {
+  sum = 0
+  for(i in 0:x) {
+    sum = sum + i * 1/(x+1)
+  }
+  sum
+}
+
+ex = compExUniform(5)
+ey = compExUniform(10)
+
+compExUniformSq <- function(x) {
+  sum = 0
+  for(i in 0:x) {
+    sum = sum + i^2 * 1/(x+1)
+  }
+  sum
+}
+exx_sq <- compExUniformSq(5)
+exy_sq <- compExUniformSq(10)
+
+varx <- exx_sq - ex^2
+vary <- exy_sq - ey^2
+```
+
+Now we can compute $V(XY)$
+
+```{r q3d_2}
+varxy = varx + vary
+```
+
+\[ 12\frac{11}{12} \]
+
+However we need to multiple this by 5 as we are interested in finding out the variance of the total waiting time
+
+```{r q3d_3}
+q3d = 5^2 * varxy
+```
+
+\[ 322\frac{11}{12} \]
+
+# 4. Maximizing Correlation
+
+Show that if $Y = aX + b$ where X and Y are random variables and a != 0, corr(X, Y) = -1 or +1
+
+\[ Corr(X, Y) = P_{X, Y} = \frac{Cov(X, Y)}{\sigma_{X}*\sigma_{Y}} = \frac{E(X-\mu_{X})(Y-\mu_Y)}{\sigma_{X}*\sigma_{Y}} \]
+\[ \frac{E[(X-\mu_{X})(Y-\mu_Y)]}{\sqrt(E((X-\mu_{X})^2)*E((Y-\mu_{Y})^2))} = \frac{(E[(X-\mu_{X})(Y-\mu_Y)])^2}{E((X-\mu_{X})^2)*E((Y-\mu_{Y})^2)} \]
+\[ \frac{(\sum_X\sum_Y(X-\mu_X)(Y-\mu_Y)p(x, y))^2}{\sum(X-\mu_X)^2*p(x))*\sum(Y-\mu_Y)^2*p(y))} \]
 
 ```{r}
 i <- 0:10
