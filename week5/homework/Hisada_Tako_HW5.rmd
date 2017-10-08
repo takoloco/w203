@@ -1,0 +1,166 @@
+---
+title: 'Unit 5 Homework: Joint Distributions'
+author: "Tako Hisada"
+date: "10/7/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Unladen Swallows
+
+```{r q1_setup}
+library(MASS)
+set.seed(898)
+```
+
+```{r q1}
+# Wingspan
+w = rnorm(100, mean = 10, sd = 4)
+# Velocity
+v = 0.5 * w + rnorm(100)
+
+# Our mus
+mu = c(10, 5)
+
+Sigma = matrix(c(16, 8, 8, 5), 2, 2)
+
+#mvnorm()
+```
+
+
+# 2. Broken Rulers
+
+```{r q2}
+```
+
+# 3.  Great Time to Watch Async
+## a. Total expected waiting time when you take the Caltrain each morning and each evening for 5 days in a row
+
+```{r q3a-1}
+i <- 0:5
+ex = sum(1/6*i)
+j <- 0:10
+ey = sum(1/11*j)
+exy = ex + ey
+```
+\[ E(X+Y) = E(X) + E(Y) \]
+\[ E(X) = \sum_{x=0}^{5}x*p(x) = 0 * \frac{1}{6} + 1 * \frac{1}{6} + 2 * \frac{1}{6} + 3 * \frac{1}{6} + 4 * \frac{1}{6} + 5 * \frac{1}{6} = 2.5 \]
+\[ E(Y) = \sum_{x=0}^{10}y*p(y) = 0 * \frac{1}{10} + 1 * \frac{1}{10} + 2 * \frac{1}{10} + 3 * \frac{1}{10} + 4 * \frac{1}{10} + 5 * \frac{1}{10} + 6 * \frac{1}{10} + 7 * \frac{1}{10} + 8 * \frac{1}{10} + 9 * \frac{1}{10} + 10 * \frac{1}{10} = 5 \]
+\[ E(X+Y) = E(X) + E(Y) = 2.5 + 5 = 7.5 \]
+
+Since we are being asked for the total expected waiting time when we took the Caltrain for 5 days in a row, we need to multiply this value by 5.
+
+```{r q3a-2}
+q3a = exy*5
+```
+
+\[ E(X+Y) = 7.5 * 5 = 37.5 \]
+
+37.5 minutes
+
+## b. Variance of the total waiting time
+
+\[ V(X+Y) = V(X) + V(Y) + 2*COV(X+Y)\]
+\[ V(X) = E(X^2) - E(X)^2 \]
+\[ V(Y) = E(Y^2) - E(Y)^2 \]
+
+```{r q3b_1}
+
+compExUniform <- function(x) {
+  sum = 0
+  for(i in 0:x) {
+    sum = sum + i * 1/(x+1)
+  }
+  sum
+}
+compExUniform(10)
+
+ex = compExUniform(5)
+ey = compExUniform(10)
+
+compExUniformSq <- function(x) {
+  sum = 0
+  for(i in 0:x) {
+    sum = sum + i^2 * 1/(x+1)
+  }
+  sum
+}
+exx_sq <- compExUniformSq(5)
+exy_sq <- compExUniformSq(10)
+
+varx <- exx_sq - ex^2
+vary <- exy_sq - ey^2
+```
+
+\[ COV(X, Y) = E(XY) - \mu_{X}\mu_Y \]
+
+```{r q3b_2}
+compExXYUniform <- function(x, mux, y, muy) {
+  sum = 0
+  for(i in 0:x) {
+    for(j in 0:y) {
+      sum = sum + ((i-mux)*(j-muy))/((x+1)*(y+1))
+    }
+    #print(sprintf("END SUM: %f", sum))
+  }
+  sum
+}
+exxy <- compExXYUniform(5, 2.5, 10, 5)
+
+cov_xy = exxy - ex*ey
+```
+
+Now we can compute $V(XY)$
+
+```{r q2b_3}
+varxy = varx + vary - 2*cov_xy
+```
+
+\[ 37\frac{11}{12} \]
+
+## c. Expected value of the difference between the total evening waiting time and the total morning waiting time over all 5 days
+
+\[ E(X-Y) \]
+
+```{r q3c}
+i <- 0:5
+ex = sum(1/6*i)
+j <- 0:10
+ey = sum(1/11*j)
+exy_diff = abs(ex - ey)
+```
+\[ E(X-Y) = E(X) - E(Y) \]
+\[ E(X) = \sum_{x=0}^{5}x*p(x) = 0 * \frac{1}{6} + 1 * \frac{1}{6} + 2 * \frac{1}{6} + 3 * \frac{1}{6} + 4 * \frac{1}{6} + 5 * \frac{1}{6} = 2.5 \]
+\[ E(Y) = \sum_{x=0}^{10}y*p(y) = 0 * \frac{1}{10} + 1 * \frac{1}{10} + 2 * \frac{1}{10} + 3 * \frac{1}{10} + 4 * \frac{1}{10} + 5 * \frac{1}{10} + 6 * \frac{1}{10} + 7 * \frac{1}{10} + 8 * \frac{1}{10} + 9 * \frac{1}{10} + 10 * \frac{1}{10} = 5 \]
+\[ E(X-Y) = |E(X) - E(Y)| = 2.5 \]
+
+Since we are being asked for the total expected waiting time when we took the Caltrain for 5 days in a row, we need to multiply this value by 5.
+
+```{r q3c_2}
+q3c = exy_diff*5
+```
+
+\[ E(X+Y) = 2.5 * 5 = 12.5 \]
+
+12.5 minutes
+
+```{r}
+i <- 0:10
+j <- 0:5
+
+compSum <- function(x, y) {
+  sum_x = sum(1/length(x)*x)
+  print(sprintf("SUM X: %d", sum_x))
+  sum_y = 0
+  for(idx in 1:length(y)) {
+    sum_y = sum_y + (sum(x) + y[idx] * length(x))
+    print(sprintf("Y IDX: %d", y[idx]))
+    print(sprintf("SUM Y: %d", sum_y))
+  }
+  sum_y
+}
+e_xysq <- compSum(i, j)/60
+```
