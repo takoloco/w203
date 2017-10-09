@@ -17,17 +17,13 @@ set.seed(898)
 ```
 We know SD of Wingspan is 4. Since $V(X) = \sqrt(\sigma_X^2)$, $V(W) = 4^2 = 16$.
 
-\[ V(V) = V[h(W)] = V[\frac{1}{2}w + U] = a^2*\sigma^2_W = (\frac{1}{2})^2 * 4^2 = 4 \]
-
-We know $\mu_W$ is 10. From this, we can compute $E(h(W))$:
-
-\[ E(V) = E[h(W)] = E[\frac{1}{2}w + U] = \frac{1}{2} * 10 + U = 5 + U \]
+\[ V(V) = V[h(W)] = V[\frac{1}{2}w + U] = a^2*\sigma^2_W + V(U) = (\frac{1}{2})^2 * 4^2 + 1 = 5 \]
 
 Now we want to compute $Cov(W, V)$.
 
-\[ Cov(W, V) = E(WV) - \mu_W * \mu_V \]
-
-\[ E(WV) = \int_{-\infty}^{\infty}\int_{-\infty}^{\infty}wvf_{W, V}(w, v)dwdv = \int_{-\infty}^{\infty}wf_{W}(w)dw\int_{-\infty}^{\infty}vf_{V}(v)dv \]
+\[ Cov(W, V) = Cov(W, \frac{1}{2}w + U) = Cov(W, \frac{1}{2}W) + Cov(W, U) = Cov(W, 1/2W) + 0 \]
+\[ Cov(W, 1/2W) = E((W-E(W)(\frac{1}{2}W-E(\frac{1}{2}W)) = E((W-E(W)(\frac{1}{2}W-\frac{1}{2}E(W)) \]
+\[ E((W-E(W)\frac{1}{2}(W-E(W)) = \frac{1}{2}E((W-E(W))^2) = \frac{1}{2}VAR(W) = \frac{1}{2}*16 = 8 \]
 
 ```{r q1}
 # Wingspan
@@ -35,12 +31,17 @@ w = rnorm(100, mean = 10, sd = 4)
 mu_w = 10
 sd_w = 4
 v_w = sd_w^2
+a_w = 1/2
 
 # Velocity
-v = 0.5 * w + rnorm(100)
+v = a_w * w + rnorm(100)
+v_v = a_w^2 * sd_w^2 + 1
 
-#Sigma = matrix(c(16, 8, 8, 5), 2, 2)
-#mvnorm()
+# Covariance
+cov_w_v = 1/2*v_w
+
+# Covariance-Variance Matrix
+(Sigma = matrix(c(v_w, cov_w_v, cov_w_v, v_v), 2, 2))
 ```
 
 
@@ -48,9 +49,38 @@ v = 0.5 * w + rnorm(100)
 
 ## a. Conditional expectation of Y given X, E(Y|X)
 
-\[ E(Y|X) = \int_{0}^{1}\int_{0}^{1-x}f_{Y|X(y|x)} \]
+X is uniformly distributed.
+\[ f(Y|X) = \frac{1}{x} \]
 
-```{r q2}
+\[ E(Y|X) = \int_{0}^X yf(Y|X)dy \]
+\[ E(Y|X) = \int_{0}^X y*\frac{1}{x} = \frac{y^2}{x}|_{0}^{X} = \frac{x}{2} \]
+
+## b. Unconditional expectation of Y
+
+\[ E[Y] = E[E[Y|X]] \]
+
+We know from a E[Y|X] = $\frac{x}{2}$
+
+\[ E[Y] = E[ \frac{x}{2} ] = \frac{1}{2}E(X) \]
+
+\[ E[X] = \int_0^1 xf(x)dx = \frac{x^2}{2}|_{0}^{1} = \frac{1}{2} \]
+
+\[ E[Y] = \frac{1}{2}E[X] = \frac{1}{2}*\frac{1}{2} = \frac{1}{4} \]
+
+## c. Compute E(XY)
+
+\[ E[XY] = E[ E(XY|X) ] = E[ X*E(Y|X) ] = E[ X \frac{X}{2} ] = E[ \frac{X^2}{2} ] = \frac{1}{2}E[X^2] = \frac{1}{2}E[X^2] \]
+
+\[ E[X^2] = E[h(X)] = \int_0^1 x^2f(x)dx = \int_0^1 x^2dx = \frac{x^3}{3}|_{0}^{1} = \frac{1}{3} \]
+
+\[ E[XY] = \frac{1}{2}E[X^2] = \frac{1}{2}*\frac{1}{3} = \frac{1}{6} \]
+
+## d. Compute Cov(X, Y)
+
+\[ Cov(X, Y) = E(XY) - \mu_X\mu_Y = \frac{1}{6} - \frac{1}{2}*\frac{1}{4} = \frac{1}{24} \]
+
+```{r q2d}
+(q2d = 1/6-1/2*1/4)
 ```
 
 # 3.  Great Time to Watch Async
@@ -111,7 +141,7 @@ varx <- exx_sq - ex^2
 vary <- exy_sq - ey^2
 ```
 
-\[ COV(X, Y) = E(XY) - \mu_{X}\mu_Y \]
+\[ Cov(X, Y) = E(XY) - \mu_{X}\mu_Y \]
 
 ```{r q3b_2}
 compExXYUniform <- function(x, mux, y, muy) {
@@ -224,24 +254,21 @@ q3d = 5^2 * varxy
 
 Show that if $Y = aX + b$ where X and Y are random variables and a != 0, corr(X, Y) = -1 or +1
 
-\[ Corr(X, Y) = P_{X, Y} = \frac{Cov(X, Y)}{\sigma_{X}*\sigma_{Y}} = \frac{E(X-\mu_{X})(Y-\mu_Y)}{\sigma_{X}*\sigma_{Y}} \]
-\[ \frac{E[(X-\mu_{X})(Y-\mu_Y)]}{\sqrt(E((X-\mu_{X})^2)*E((Y-\mu_{Y})^2))} = \frac{(E[(X-\mu_{X})(Y-\mu_Y)])^2}{E((X-\mu_{X})^2)*E((Y-\mu_{Y})^2)} \]
-\[ \frac{(\sum_X\sum_Y(X-\mu_X)(Y-\mu_Y)p(x, y))^2}{\sum(X-\mu_X)^2*p(x))*\sum(Y-\mu_Y)^2*p(y))} \]
+\[ Corr(X, Y) = P_{X, Y} = \frac{Cov(X, Y)}{\sigma_{X}*\sigma_{Y}} \]
+\[ Corr(X, aX+b) = P_{X, aX+b} = \frac{Cov(X, aX+b)}{\sigma_{X}*\sigma_{aX+b}} \]
 
-```{r}
-i <- 0:10
-j <- 0:5
+Since adding a constant to random variables does not change their covariances or variances, we can say:
 
-compSum <- function(x, y) {
-  sum_x = sum(1/length(x)*x)
-  print(sprintf("SUM X: %d", sum_x))
-  sum_y = 0
-  for(idx in 1:length(y)) {
-    sum_y = sum_y + (sum(x) + y[idx] * length(x))
-    print(sprintf("Y IDX: %d", y[idx]))
-    print(sprintf("SUM Y: %d", sum_y))
-  }
-  sum_y
-}
-e_xysq <- compSum(i, j)/60
+\[ \frac{Cov(X, aX)}{\sigma_{X}*\sigma_{aX}} \]
+
+We can also move the constant a out of Cov and $\sigma$
+
+\[ \frac{a*Cov(X, X)}{|a|*\sigma_{X}*\sigma_{X}} \]
+
+We can cancel the constant a
+
+\[ \frac{Cov(X, X)}{\sigma_{X}*\sigma_{X}} = \frac{Var(X)}{Var(X)} = 1 \]
+
+In case a is a negative number, however, -1 remains in the numerator which makes Corr(X, Y) =  -1.
+\[ \frac{-Cov(X, X)}{\sigma_{X}*\sigma_{X}} = \frac{Var(X)}{Var(X)} = -1 \]
 ```
