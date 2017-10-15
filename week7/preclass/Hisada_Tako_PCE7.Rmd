@@ -1,0 +1,13 @@
+---
+title: "Unit 7 Pre-Class Warm-up"
+author: "Tako Hisada"
+date: "10/15/2017"
+output: pdf_document
+---
+
+## Maximum Likelihood Overview
+
+1. Our $\theta$ is $h$. Therefore we can setup our MLE function as: $l(h) = f_{H}(x;h)$
+2. $f_{H}(x;h)$'s distribution follows the HyperGroussian distribution. Therefore $l(h) = HyperGroussian distribution function for which we don't details.
+3. We will then compute $\frac{d}{dh} ln(l(h))$ to maximize h.
+4. Solving the derivative will give you the MLE value of h.
