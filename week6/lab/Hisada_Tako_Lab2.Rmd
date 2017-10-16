@@ -51,7 +51,7 @@ a. Give a complete expression for the probability mass function of $X$.
 
 b. Give a complete expression for the cumulative probability function of $X$.
 
-\[ P(x \leq X) = b(x;2,0.75) = \sum_{0}^x b(x;2,0.75) = \sum_{0}^{x} \binom{2}{x}(.75)^x(.25)^{2-x} \]
+\[ F(x) = P(X \leq x) = b(x;2,0.75) = \sum_{0}^x b(x;2,0.75) = \sum_{0}^{x} \binom{2}{x}(.75)^x(.25)^{2-x} \]
 
 c. Compute $E(X)$.
 
@@ -85,6 +85,12 @@ $$ f(x,y) = \begin{cases}
 You may wonder where you would find such a distribution.  In fact, if $A_1$ and $A_2$ are independent random variables uniformly distributed on $[0,1]$, and you define $X = max(A_1,A_2)$, $Y = min(A_1,A_2)$, then $X$ and $Y$ will have exactly the joint distribution defined above.
 
 a. Draw a graph of the region for which $X$ and $Y$ have positive probability density.
+
+```{r q3a}
+x <- 1
+y <- 1
+```
+
 b. Derive the marginal probability density function of $X$, $f_X(x)$.
 c. Derive the unconditional expectation of $X$.
 d. Derive the conditional probability density function of $Y$, conditional on $X$, $f_{Y|X}(y|x)$
