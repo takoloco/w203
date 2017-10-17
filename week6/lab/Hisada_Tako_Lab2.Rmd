@@ -92,13 +92,28 @@ y <- 1
 ```
 
 b. Derive the marginal probability density function of $X$, $f_X(x)$.
+
+\[ f_{X}(x) = \int_{-\infty}^{\infty} f(x,y)dy = \int_{0}^{1} 2dy = 2y|_{0}^{1} = 2 \]
+
 c. Derive the unconditional expectation of $X$.
+
+\[ E[X] = \int_{-\infty}^{\infty} xf(x)dx = \int_{0}^{1} x2dx = x^2|_{0}^{1} = 1 \]
+
 d. Derive the conditional probability density function of $Y$, conditional on $X$, $f_{Y|X}(y|x)$
+
+\[ f_{Y|X}(y|x) = \frac{f(x,y)}{f_{X}(x)} = \frac{2}{2} = 1 \]
+
 e. Derive the conditional expectation of $Y$, conditional on $X$, $E(Y|X)$.
+
+\[ E[Y|X] = \int_{-\infty}^{\infty} y*f_{Y|X}(y|x)dy = \int_{0}^{1} y dy = \frac{y^2}{2}|_{0}^{1} = \frac{1}{2} \]
+
 f. Derive $E(XY)$.  Hint: if you take an expectation conditional on $X$, $X$ is just a constant inside the expectation.  This means that $E(XY|X) = XE(Y|X)$.
+
+\[ E(XY) = E(XY|X) = XE(Y|X) = X*\frac{1}{2} = \frac{1}{2} \]
+
 g. Using the previous parts, derive $cov(X,Y)$
 
-
+\[ Cov(X, Y) = E(XY) - \mu_X*\mu_Y = \frac{1}{2} - 1*\frac{1}{2} = 0 \]
 
 # 4. Circles, Random Samples, and the Central Limit Theorem
 
