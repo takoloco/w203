@@ -87,8 +87,11 @@ You may wonder where you would find such a distribution.  In fact, if $A_1$ and 
 a. Draw a graph of the region for which $X$ and $Y$ have positive probability density.
 
 ```{r q3a}
-x <- 1
-y <- 1
+plot(c(0,1), c(0,1), xlab = "x", ylab = "y", main = "Relating Min and Max")
+x <- c(0, 1, 1)
+y <- c(0, 1, 0)
+polygon(x, y, col = "grey", lty = 1, border = 0)
+polygon(c(0, 1), c(0, 1), col = "black", lty = 1, lwd = 2)
 ```
 
 b. Derive the marginal probability density function of $X$, $f_X(x)$.
