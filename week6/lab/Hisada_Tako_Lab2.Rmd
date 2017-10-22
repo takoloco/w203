@@ -5,7 +5,7 @@ header-includes:
     \usepackage{amsmath}
     \newcommand{\var}{\mathrm{var}}
 author: "Tako Hisada"
-date: "10/8/2017"
+date: "10/21/2017"
 output: pdf_document
 
 ---
@@ -16,7 +16,7 @@ You are given a bucket that contains 100 coins.  99 of these are fair coins, but
 
 a. To see if the coin you have is the trick coin, you flip it $k$ times.  Let $H_k$ be the event that the coin comes up heads all $k$ times.  If you see this occur, what is the conditional probability that you have the trick coin?  In other words, what is $P(T|H_k)$.
 
-\[ P(T|H_k) = \frac{0.01}{(0.99*0.5^k +  0.01*1^k)} \]
+\[ P(T|H_k) = \frac{0.01}{(0.99*0.5^k +  0.01*1^k)} = \frac{0.01}{(0.99*0.5^k +  0.01)} \]
 
 b. How many heads in a row would you need to observe in order for the conditional probability that you have the trick coin to be higher than 99%?
 
@@ -228,9 +228,6 @@ for(i in 1:n) {
 }
 
 hist(means)
-
-# Compute the mean of the sample means
-mean(means)
 ```
 
 h. Compute the standard deviation of your sample averages to see if it's close to the value you expect from part c.
