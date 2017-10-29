@@ -10,8 +10,6 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-
 ## The Meat 
 
 Suppose that Americans consume an average of 2 pounds of ground beef per month.
@@ -43,18 +41,29 @@ Assume we are analyzing MIDS students' GRE quantitative scores. We want to const
 
 $$ \big( \bar{X} -1.96 \cdot \frac{s}{\sqrt{n}}, \big( \bar{X} +1.96 \cdot \frac{s}{\sqrt{n}} \big) $$
 
-```{r q2}
-t <- function(mean, ) {
-  
-}
-
-(ci_l = 2.45 - ci)
-(ci_r = 2.45 + ci)
-```
-
 What is the real confidence level for the interval we have made, if the sample size is 10?  What if the sample size is 200? 
 
-For the sample size of 200, n is sufficiently large and hence we can say that the interval achieves the confidence level of 95%.
+The sample size of 10 is not large enough for us to subsititute $\sigma$ with $S$. Therefore what we are working with here is a t-curve rather than a z-curve. For a sample size of 10, v (df) would be 9.
+
+```{r q2a}
+t = 1.96
+v = 10 - 1
+compCL <- function(t, v) {
+  1-2*(1-pt(t, v))
+}
+(conf_10 <- compCL(t, v))
+```
+
+For a sample with 9 DF, this would present a 91.84% confidence interval.
+
+Similarly, for when the sample size is 200, we could compute the confidence level as below:
+
+```{r q2b}
+v = 200 - 1
+(conf_200 <- compCL(t, v))
+```
+
+However the sample size 200 is sufficiently larger than the recommended sample size of $n > 40$. Therefore we can say the interval gives us the confidence level of 95% in this case.
 
 ## Maximim Likelihood Estimation for an Exponential Distribution
 
@@ -86,19 +95,19 @@ Do this using the following steps:
 
 a. Write down the likelihood function, $L(\lambda)$.  Hint: We want the probility (density) that the data is exactly $x_1, x_2,...,x_n$.  Since the times are independent, this is the probability (density) that $X_1 = x_1$, times the probability (density) that $X_2 = x_2$, and so on.
 
-
+$$L(\lambda) = f(x_1,...,x_n;\lambda) = (\lambda e^{-\lambda x_1}) ... (\lambda e^{-\lambda x_n}) = \lambda^n e^{-\lambda \sum x_i}$$
 
 b. To make your calculations easier, write down the log of the likelihood, and simplify it.
-    $$\ln{L(\lambda)} = n \ln{\lambda} - \lambda \sum_{i=1}^{n}x$$
+    $$\ln{L(\lambda)} = ln(\lambda^n e^{-\lambda \sum x_i}) = ln(\lambda^n) + ln(e^{-\lambda \sum x_i}) = n \ln({\lambda}) - \lambda \sum x_i$$
 
 
 c. Take the derivative of the log of likelihood, set it equal to zero, and solve for $\lambda$.  How is it related to the mean time between arrivals?
 
-    $$\frac{\partial {\ln{L(\lambda)}}}{\partial \lambda} = \frac{\partial}{\partial \lambda}(n\ln{\lambda}) - \frac{\partial}{\partial \lambda} (\lambda \sum_{i=1}^{n}x) = 0$$
-    $$ \frac{n}{\lambda} - \sum_i^n x = 0 $$
-    $$ \lambda = \frac{n}{\sum x}$$
-    $\lambda_{mle}$ is the inverse of the mean time between arrivals $\bar{X}$.
-    
+$$\frac{d}{d\lambda}\ln{L(\lambda)} = \frac{d}{d\lambda} \big(n \ln({\lambda}) - \lambda \sum x_i\big) = \frac{n}{\lambda} - \sum x_i = 0$$
+$$\frac{n}{\lambda} = \sum x_i$$
+$$\frac{1}{\lambda} = \frac{\sum x_i}{n}$$
+$$\lambda = \frac{n}{\sum x_i} = \frac{1}{\bar{x}}$$
+From this, we can say $\lambda$ is the inverse of the mean time between arrivals.
 
 d. Suppose you get the following vector of times between cars:
 
@@ -110,17 +119,18 @@ times = c(2.65871285, 8.34273228, 5.09845548, 7.15064545,
 ```
 
 Use R to plot the likelihood function. Then use optimize to approximate the maximum likelihood estimate for $\lambda$. How does your answer compare to your solution from part c?
-```{r}
-likelihood=function(l){
+```{r q3d}
+likelihood <- function(l) {
   length(times)*log(l)-l*sum(times)
 }
-lambda=seq(0,5,.01)
-plot(likelihood,lambda,xlim=c(0,5),xlab='Lambda',main="Likelihood versus Lambda")
 
-optimize(likelihood,interval=c(0,5), maximum=T)
+lambda=seq(0,3,.01)
 
-length(times)/sum(times)
+plot(likelihood, lambda, xlim=c(0,3),xlab='Lambda',main="Likehood")
+(opt_lh <- optimize(likelihood,interval=c(0,3), maximum = TRUE))
 
+mean <- mean(times)
+(opt_mean <- 1/mean)
 ```
 
-The optimize function and the equation derived in part c give almost identical answers!
+The maximum likelihood estimate we get from the optimize function is very close to the value we get from the solution for c $\frac{1}{\bar{X}}$.
