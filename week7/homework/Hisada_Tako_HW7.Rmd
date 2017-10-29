@@ -18,18 +18,43 @@ Suppose that Americans consume an average of 2 pounds of ground beef per month.
 
 (a) Do you expect the distribution of this measure (ground beef consumption per capita per month) to be approximately normal? Why or why not?
 
+Yes. CLT states that when n is sufficiently large, a suitable normal curve will approximate the actual distribution of $\bar{X}$. Since $n$ in this case is the entire population of the US which is obviously quite large, we can expect the distribution of this measure to be approximately normal.
+
 (b) Suppose you want to take a sample of 100 people. Do you expect the distribution of the sample mean to be approximately normal? Why or why not?
+
+Yes. The rule of thumb is that CLT can be generally applied when $n > 30$.
 
 (c) You take a random sample of 100 Berkeley students to find out if their monthly ground beef consumption is any different than the nation at large.  The mean among your sample is 2.45 pounds and the sample standard deviation is 2 pounds. What is the 95\% confidence interval for Berkeley students?
 
+```{r q1c}
+compCI95 <- function(sd, n) {
+  ci = 1.96*sd/sqrt(n)
+}
+ci <- compCI95(2, 100)
 
+(ci_l <- 2.45 - ci)
+(ci_r <- 2.45 + ci)
+```
+
+$CI = \bar{X}\pm1.96*\frac{\sigma}{\sqrt{n}} = 2.45\pm(0.392) = (2.058, 2.842)$
 
 ## GRE Scores
 Assume we are analyzing MIDS students' GRE quantitative scores. We want to construct a $95\%$ confidence interval, but we *naively* uses the famous 1.96 threshold as follows:
 
 $$ \big( \bar{X} -1.96 \cdot \frac{s}{\sqrt{n}}, \big( \bar{X} +1.96 \cdot \frac{s}{\sqrt{n}} \big) $$
 
+```{r q2}
+t <- function(mean, ) {
+  
+}
+
+(ci_l = 2.45 - ci)
+(ci_r = 2.45 + ci)
+```
+
 What is the real confidence level for the interval we have made, if the sample size is 10?  What if the sample size is 200? 
+
+For the sample size of 200, n is sufficiently large and hence we can say that the interval achieves the confidence level of 95%.
 
 ## Maximim Likelihood Estimation for an Exponential Distribution
 
@@ -60,6 +85,8 @@ Suppose we record a set of times between arrivals at our intersection, $x_1, x_2
 Do this using the following steps:
 
 a. Write down the likelihood function, $L(\lambda)$.  Hint: We want the probility (density) that the data is exactly $x_1, x_2,...,x_n$.  Since the times are independent, this is the probability (density) that $X_1 = x_1$, times the probability (density) that $X_2 = x_2$, and so on.
+
+
 
 b. To make your calculations easier, write down the log of the likelihood, and simplify it.
     $$\ln{L(\lambda)} = n \ln{\lambda} - \lambda \sum_{i=1}^{n}x$$
