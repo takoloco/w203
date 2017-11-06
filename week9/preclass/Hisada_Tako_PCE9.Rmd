@@ -1,0 +1,50 @@
+---
+title: "Unit 9 Pre-Class Exercise"
+author: "Tako Hisada"
+date: "11/05/2017"
+output: pdf_document
+---
+
+You have been assigned to analyze data concerning the disease osteoarthritis and its effect on weight bearing joints such as the knee. You are given the following summary data on the stance duration from two groups; older, and younger adults. With this data perform a one sided hypothesis test at $\alpha$ = 0.05 on whether the mean standing duration is longer in older individuals. Assume stance duration in both populations is normally distributed.
+
+\begin{center}
+\begin{tabular}{ c c c c }
+ \textbf{Group} & \textbf{Sample Size} & \textbf{Sample Mean} & \textbf{Sample Std Dev}\\
+ \hline
+ Older & 28 & 801 & 117 \\
+ Younger & 16 & 780 & 72 \\
+ \hline
+\end{tabular}
+\end{center}
+
+```{r}
+# Initialize variables with the values from the table
+alpha = 0.05
+s1 = 117
+s2 = 72
+mu1 = 801
+mu2 = 780
+n1 = 28
+n2 = 16
+
+computeV <- function(s1, s2, n1, n2) {
+  floor((s1^2/n1 + s2^2/n2)^2/( (s1^2/n1)^2/(n1-1) + (s2^2/n2)^2/(n2-1)))
+}
+
+v = computeV(s1, s2, n1, n2)
+
+computeT <- function(mu1, mu2, s1, s2, n1, n2) {
+  (mu1 - mu2)/sqrt(s1^2/n1 + s2^2/n2)
+}
+
+T = computeT(mu1, mu2, s1, s2, n1, n2)
+pval = pt(T,v,lower.tail = FALSE)
+
+# If the P value is smaller than alpha, reject Null
+if (pval <= alpha)
+  { "Reject Null" }
+
+# Otherwise we fail to reject Null
+if (pval > alpha)
+  { "Fail to Reject Null" }
+```
