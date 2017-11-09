@@ -11,6 +11,8 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Introduction
+
 ## The Data
 
 The American National Election Studies (ANES) conducts surveys of voters in the United States before and after every presidential election.  You are given a small subset of the 2012 ANES survey, contained in the file ANES\_2012\_sel.csv.
@@ -43,28 +45,118 @@ Possible answers included:
 
 The variable libcpre\_self records answers before the election, while libcpo\_self records answers after the election.
 
-WARNING: If you coerce these variables directly into numeric vectors (or if such coercion happens automatically), the levels may not translate into the right numbers.  Consider the following code.
+# Analysis
 
-```{r}
+## 1. Did voters become more liberal or more conservative during the 2012 election?
+
+### Analysis
+
+All survey responses can be forced into numeric values on the scale of 1-7, -2, -8 or -9.
+
+```{r q1_1}
 table(S$libcpre_self, as.numeric(S$libcpre_self))
+n = length(S$libcpre_self)
 ```
 
+Our n is `r n`.
 
-You can find explanations for other variables in the ANES codebook.
+In order to measure where people stand on the political spectrum, however, the answers -2, -8 or -9 are not informative. Also because of the presence of these values, the numeric values assigned by R are off by 3 from the numbers present in the survey answer choices (i.e. R assigned 4 to "1. Extremely liberal").
 
-## Assignment
+We need to re-assign values to match the survey answer choices and also 0 out the values for the choices -2, -8 and -9.
 
-You will use the ANES dataset to address the following questions:
+```{r q1_2}
+# Function for generating a vector filled with a specified value 
+generateSeq <- function(v, value) {
+  seq = c()
+  for(i in 1:length(v)) {
+    seq[i] = value
+  }
+  seq
+}
 
-1. Did voters become more liberal or more conservative during the 2012 election?
+# Function for generating political weights nulling invalid answers 
+compilePoliticalWeights <- function(v, null_index, skip_zero = FALSE) {
+  num_v = as.numeric(v)
+  weights = c()
+  
+  for(i in 1:length(unique(num_v))) {
+    if(i <= null_index) {
+      if(!skip_zero) {
+        weights = c(weights, generateSeq(num_v[num_v == i], 0))        
+      }
+    } else {
+      weights = c(weights, generateSeq(num_v[num_v == i], i - null_index))
+    }
+  }
+  weights
+}
 
-2. Were Republican voters (examine variable pid\_x) older or younger (variable dem\_age\_r\_x), on the average, than Democratic voters in 2012?
+libcpre_weights <- compilePoliticalWeights(S$libcpre_self, 3, TRUE)
+summary(libcpre_weights)
+mu_libcpre = mean(libcpre_weights)
+hist(libcpre_weights, main = "Pre-2012 Election Political Standing", 
+     xlab = "Political Standing")
+```
 
-3. Were Republican voters older than 51, on the average in 2012?
+Our $mu$ pre 2012 election is `r mu_libcpre`.
 
-4. Were Republican voters more likely to shift their political preferences right or left (more conservative or more liberal), compared to Democratic voters during the 2012 election?
+Likewise, we will need to do the same data sanitizing for the post-election data.
 
-5. Select a fifth question that you are interested in investigating.
+```{r q1_3}
+table(S$libcpo_self, as.numeric(S$libcpo_self))
+```
+
+The data now contains 2 additional invalid values -6 and -7 in addition to -2, -8 and -9 we saw previously.
+
+```{r q1_4}
+libcpo_weights <- compilePoliticalWeights(S$libcpo_self, 5, TRUE)
+summary(libcpo_weights)
+mu_libcpo = mean(libcpo_weights)
+hist(libcpo_weights, main = "Post-2012 Election Political Standing", 
+     xlab = "Political Standing")
+```
+
+Our $mu$ post 2012 election is `r mu_libcpo` which is slightly lower than before the election suggesting there were more people idntified with the liberal-side of the political spectrum.
+
+### Hypotheses
+
+From this, we can formulate our hypotheses as below:
+
+$$H_0: \mu_1 - \mu_2 = 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+### Statistical Significance
+
+#### Justificaition
+
+Our distribution is somewhat normal and our n is sufficiently large. We can conduct a t-test in determining if the post-election mean is in fact lower than the pre-election.
+
+```{r q1_5}
+t.test(libcpre_weights, libcpo_weights, alternative = "greater")
+```
+
+#### Result
+
+Our p-value is 0.2203. We fail to reject $H_0$. We are unable to say if people became more liberal nor conservative as a result of this.
+
+### Practical Significance
+
+There is no practical significance observed between $\mu_1$ and $\mu_1$.
+
+## 2. Were Republican voters (examine variable pid\_x) older or younger (variable dem\_age\_r\_x), on the average, than Democratic voters in 2012?
+
+```{r q2_1}
+table(S$pid_x, as.numeric(S$pid_x))
+table(S$dem_age_r_x, as.numeric(S$dem_age_r_x))
+
+(dem_ages <- S$pid_x[S$pid_x == "Strong Democrat"])
+```
+
+## 3. Were Republican voters older than 51, on the average in 2012?
+
+## 4. Were Republican voters more likely to shift their political preferences right or left (more conservative or more liberal), compared to Democratic voters during the 2012 election?
+
+## 5. Select a fifth question that you are interested in investigating.
 
 Prepare a report addressing these questions.  A successful submission should include:
 
