@@ -65,6 +65,9 @@ In order to measure where people stand on the political spectrum, however, the a
 We need to re-assign values to match the survey answer choices and also 0 out the values for the choices -2, -8 and -9.
 
 ```{r q1_2}
+# Define bins for political standing histograms
+bins_standing <- seq(from = 0, to = 7, by = 1)
+
 # Function for generating a vector filled with a specified value 
 generateSeq <- function(v, value) {
   seq = c()
@@ -95,10 +98,10 @@ libcpre_weights <- compilePoliticalWeights(S$libcpre_self, 3, TRUE)
 summary(libcpre_weights)
 mu_libcpre = mean(libcpre_weights)
 hist(libcpre_weights, main = "Pre-2012 Election Political Standing", 
-     xlab = "Political Standing")
+     xlab = "Political Standing", breaks = bins_standing)
 ```
 
-Our $mu$ pre 2012 election is `r mu_libcpre`.
+Our $\mu$ pre 2012 election is `r mu_libcpre`.
 
 Likewise, we will need to do the same data sanitizing for the post-election data.
 
@@ -113,14 +116,17 @@ libcpo_weights <- compilePoliticalWeights(S$libcpo_self, 5, TRUE)
 summary(libcpo_weights)
 mu_libcpo = mean(libcpo_weights)
 hist(libcpo_weights, main = "Post-2012 Election Political Standing", 
-     xlab = "Political Standing")
+     xlab = "Political Standing", breaks = bins_standing)
 ```
 
-Our $mu$ post 2012 election is `r mu_libcpo` which is slightly lower than before the election suggesting there were more people idntified with the liberal-side of the political spectrum.
+Our $\mu$ post 2012 election is `r mu_libcpo` which is slightly lower than before the election suggesting there were more people idntified with the liberal-side of the political spectrum.
 
 ### Hypotheses
 
 From this, we can formulate our hypotheses as below:
+
+$\mu_1$ = Pre-2012 election political standing\newline
+$\mu_2$ = Post-2012 election political standing
 
 $$H_0: \mu_1 - \mu_2 = 0$$
 $$H_1: \mu_1 - \mu_2 > 0$$
@@ -141,18 +147,118 @@ Our p-value is 0.2203. We fail to reject $H_0$. We are unable to say if people b
 
 ### Practical Significance
 
-There is no practical significance observed between $\mu_1$ and $\mu_1$.
+We are going to calculate Cohen's d to measure effect size. 
+
+```{r q1_6}
+calcPooledSd <- function(v1, v2) {
+  ((length(v1)-1)*sd(v1)^2 + (length(v2)-1)*sd(v2)^2)/(length(v1) + length(v2) - 2)
+}
+calcCohensD <- function(v1, v2) {
+  (mean(v1) - mean(v2))/calcPooledSd(v1, v2)
+}
+
+(d = calcCohensD(libcpre_weights, libcpo_weights))
+```
+
+The Cohen's d value for this case is `r d` which is $< 0.8$. There is no practical significance observed between $\mu_1$ and $\mu_2$.
 
 ## 2. Were Republican voters (examine variable pid\_x) older or younger (variable dem\_age\_r\_x), on the average, than Democratic voters in 2012?
 
 ```{r q2_1}
-table(S$pid_x, as.numeric(S$pid_x))
-table(S$dem_age_r_x, as.numeric(S$dem_age_r_x))
+# Define bins for voter age histograms
+bins_ages <- seq(from = 20, to = 100, by = 10)
+bins_ages <- c(18, bins_ages)
 
-(dem_ages <- S$pid_x[S$pid_x == "Strong Democrat"])
+# Extract Republican voters
+rep_ages <- S$dem_age_r_x[grep("republican", S$pid_x, ignore.case = T)]
+rep_ages <- rep_ages[is.numeric(rep_ages) & rep_ages >= 18]
+rep_ages_n = length(rep_ages)
+rep_age_mean = mean(rep_ages)
+hist(rep_ages, main = "Republican Voter Age", xlab = "Age", breaks = bins_ages)
+
+# Extract Democratic voters
+dem_ages <- S$dem_age_r_x[grep("democrat", S$pid_x, ignore.case = T)]
+dem_ages <- dem_ages[is.numeric(dem_ages) & dem_ages >= 18]
+dem_ages_n = length(dem_ages)
+dem_age_mean = mean(dem_ages)
+hist(dem_ages, main = "Democratic Voter Age", xlab = "Age", breaks = bins_ages)
 ```
 
+The average Republican voter age is `r rep_age_mean` which is in a little bit higher that that of the Democratic voeters' `r dem_age_mean`.
+
+### Hypotheses
+
+From this, we can formulate our hypotheses as below:
+
+$\mu_1$ = Average Republican voter age\newline
+$\mu_2$ = Average Democratic voter age
+
+$$H_0: \mu_1 - \mu_2 = 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+### Statistical Significance
+
+#### Justificaition
+
+Our n for Republicans is `r rep_ages_n` and for Democrats is `r dem_ages_n`. The distributions are fairly normal as seen above and our ns is sufficiently large. We can conduct a t-test in determining if $\mu_1$ is in fact greater than $\mu_2$.
+
+```{r q2_2}
+rs <- t.test(rep_ages, dem_ages, alternative = "greater")
+p <- rs$p.value
+```
+
+#### Result
+
+Our p-value is 0.0007. We can reject $H_0$ at a significance level of 0.05, 0.01 and 0.001.
+
+### Practical Significance
+
+We are going to calculate Cohen's D to measure effect size. 
+
+```{r q2_3}
+(d = calcCohensD(rep_ages, dem_ages))
+```
+
+The Cohen's d value for this case is `r d` which is $< 0.8$. There is no practical significance observed between $\mu_1$ and $\mu_2$.
+
 ## 3. Were Republican voters older than 51, on the average in 2012?
+
+The average Republican voter is `r rep_age_mean`.
+
+### Hypotheses
+
+From this, we can formulate our hypotheses as below:
+
+$$H_0: \mu = 51$$
+$$H_1: \mu > 51$$
+
+### Statistical Significance
+
+#### Justificaition
+
+Our n is `r rep_ages_n`. The distribution is fairly normal as seen in Q2 and our n is sufficiently large. We can conduct a t-test in determining if the average is in fact greater than 51 or not.
+
+```{r q3_1}
+rs <- t.test(rep_ages, alternative = "greater", mu = 51)
+p <- rs$p.value
+```
+
+#### Result
+
+Our p-value is `r p`. We fail to reject $H_0$ at a significance level of 0.05 or anything smaller.
+
+### Practical Significance
+
+We are going to calculate Cohen's d to measure effect size.
+
+```{r q3_2}
+computeEffectSizeCorrelationR <- function(t, df) {
+  t/sqrt(t^2+df)
+}
+r = computeEffectSizeCorrelationR(rs$statistic, rep_ages_n-1)
+```
+
+The effect size correlation r for this case is `r r` which is $< 0.8$. There is no practical significance observed.
 
 ## 4. Were Republican voters more likely to shift their political preferences right or left (more conservative or more liberal), compared to Democratic voters during the 2012 election?
 
@@ -167,11 +273,11 @@ Prepare a report addressing these questions.  A successful submission should inc
 3. For each test, include:
 
     + A brief exploratory analysis targetted to check the assumptions needed for your test.
-    
+
     + A justification for why the test is the most appropriate choice
-    
+
     + An explanation of test results, including *BOTH* statistical significance and practical significance.
-    
+
 4. A brief conclusion with a few high-level takeaways.
 
 
