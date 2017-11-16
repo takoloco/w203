@@ -135,7 +135,7 @@ $$H_1: \mu_1 - \mu_2 > 0$$
 
 #### Justificaition
 
-Our distribution is somewhat normal and our n is sufficiently large. We can conduct a t-test in determining if the post-election mean is in fact lower than the pre-election.
+Our distribution is fairly normal and our n is sufficiently large. We can conduct a t-test in determining if the post-election mean is in fact lower than the pre-election.
 
 ```{r q1_5}
 t.test(libcpre_weights, libcpo_weights, alternative = "greater")
@@ -200,7 +200,7 @@ $$H_1: \mu_1 - \mu_2 > 0$$
 
 #### Justificaition
 
-Our n for Republicans is `r rep_ages_n` and for Democrats is `r dem_ages_n`. The distributions are fairly normal as seen above and our ns is sufficiently large. We can conduct a t-test in determining if $\mu_1$ is in fact greater than $\mu_2$.
+Our n for Republicans is `r rep_ages_n` and for Democrats is `r dem_ages_n`. The distributions are fairly normal as seen above and our n's are sufficiently large. We can conduct a t-test in determining if $\mu_1$ is in fact greater than $\mu_2$.
 
 ```{r q2_2}
 rs <- t.test(rep_ages, dem_ages, alternative = "greater")
@@ -249,7 +249,7 @@ Our p-value is `r p`. We fail to reject $H_0$ at a significance level of 0.05 or
 
 ### Practical Significance
 
-We are going to calculate Cohen's d to measure effect size.
+We are going to calculate correlation r to measure effect size.
 
 ```{r q3_2}
 computeEffectSizeCorrelationR <- function(t, df) {
@@ -261,6 +261,92 @@ r = computeEffectSizeCorrelationR(rs$statistic, rep_ages_n-1)
 The effect size correlation r for this case is `r r` which is $< 0.8$. There is no practical significance observed.
 
 ## 4. Were Republican voters more likely to shift their political preferences right or left (more conservative or more liberal), compared to Democratic voters during the 2012 election?
+
+Let's compute how the average political standing changed for Republican voters.
+
+```{r q4_1}
+# Pre-2012 election Republican voters
+libcpre_rep_weights <-compilePoliticalWeights(
+  S$libcpre_self[grep("republican", S$pid_x, ignore.case = T)], 3, FALSE)
+summary(libcpre_rep_weights)
+mu_libcpre_rep = mean(libcpre_rep_weights)
+hist(libcpre_rep_weights, main = "Pre-2012 Election Political Standing for Republican Voters", 
+     xlab = "Political Standing", breaks = bins_standing)
+
+# Post-2012 election Republican voters
+libcpo_rep_weights <-compilePoliticalWeights(
+  S$libcpo_self[grep("republican", S$pid_x, ignore.case = T)], 5, FALSE)
+summary(libcpo_rep_weights)
+mu_libcpo_rep = mean(libcpo_rep_weights)
+hist(libcpo_rep_weights, main = "Post-2012 Election Political Standing for Republican Voters", 
+     xlab = "Political Standing", breaks = bins_standing)
+
+diff_lib_rep <- libcpo_rep_weights - libcpre_rep_weights
+(diff_mu_lib_rep <- mean(diff_lib_rep))
+
+(diff_mu_lib_rep = mu_libcpo_rep - mu_libcpre_rep)
+```
+
+The average political standing value post-2012 electioin is greater than pre-election by `r diff_mu_lib_rep`. This means that the Republican voters on average has become more conservative.
+
+Now let's do the same for Democratic voters.
+
+```{r q4_2}
+# Pre-2012 election Democratic voters
+libcpre_dem_weights <-compilePoliticalWeights(
+  S$libcpre_self[grep("democrat", S$pid_x, ignore.case = T)], 3, FALSE)
+summary(libcpre_dem_weights)
+mu_libcpre_dem <- mean(libcpre_dem_weights)
+hist(libcpre_dem_weights, main = "Pre-2012 Election Political Standing for Democratic Voters", 
+     xlab = "Political Standing", breaks = bins_standing)
+
+# Post-2012 election Democratic voters
+libcpo_dem_weights <-compilePoliticalWeights(
+  S$libcpo_self[grep("democrat", S$pid_x, ignore.case = T)], 5, FALSE)
+summary(libcpo_dem_weights)
+mu_libcpo_dem <- mean(libcpo_dem_weights)
+hist(libcpo_dem_weights, main = "Post-2012 Election Political Standing for Democratic Voters", 
+     xlab = "Political Standing", breaks = bins_standing)
+
+diff_lib_dem <- libcpo_dem_weights - libcpre_dem_weights
+(diff_mu_lib_dem <- mean(diff_lib_dem))
+```
+
+The average political standing value post-2012 electioin is smaller than pre-election by `r abs(diff_mu_lib_dem)`. This means that the Democratic voters on average has become more liberal.
+
+### Hypotheses
+
+From this, we can formulate our hypotheses as below:
+
+$\mu_1$ = Average change in political standing for Republican voters\newline
+$\mu_2$ = Average change in political standing for Democratic voters
+
+$$H_0: \mu_1 - \mu_2 = 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+### Statistical Significance
+
+#### Justificaition
+
+The Republican distribution is negatively skewed while the Democratic distribution is positively skewed. Therefore we should not use the t-test in determining statistical significance even though our n's are sufficiently large. Instead, we will use the nonpametric Wilcoxon rank-sum test.
+
+```{r q4_3}
+?wilcox.test
+rs <- t.test(rep_ages, dem_ages, alternative = "greater")
+p <- rs$p.value
+```
+
+#### Result
+
+Our p-value is 0.0007. We can reject $H_0$ at a significance level of 0.05, 0.01 and 0.001.
+
+### Practical Significance
+
+We are going to calculate Cohen's D to measure effect size. 
+
+```{r q2_3}
+(d = calcCohensD(rep_ages, dem_ages))
+```
 
 ## 5. Select a fifth question that you are interested in investigating.
 
