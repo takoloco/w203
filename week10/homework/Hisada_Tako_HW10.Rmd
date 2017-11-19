@@ -2,7 +2,7 @@
 title: "HW week 10"
 subtitle: "w203: Statistics for Data Science"
 author: "Tako Hisada"
-date: "11/13/2017"
+date: "11/19/2017"
 output: pdf_document
 ---
 
@@ -55,6 +55,15 @@ n | `r bwght_n` | `r cigs_n`
 $\mu$ | `r bwght_mu` | `r cigs_mu`
 $\sigma$  | `r bwght_sd` | `r cigs_sd`
 
+Generating a scatterplot with cigs and bwght variables 
+
+```{r q1_5, fig.height=3.0, fig.align='center'}
+plot(data$cigs, data$bwght,
+     xlab="number of cigarettes smoked by the mother each day during pregnacy",
+     ylab="infant birth weight in ounces",
+     main="Number of Cigarettes Smoked by Mother vs Infant Birth Weight")
+```
+
 2. Fit a linear model that predicts bwght as a function of cigs.  Superimpose your regression line on a scatterplot of your variables.
 
 Let's create a simple regression model from data\$cigs and data\$bwght.
@@ -67,20 +76,22 @@ model_smoking$coef
 
 Now we will generate a scatterplot with data\$cigs being our x variable and data\$bwght being our y variable then superimpose the regression line with the Y-intercept of `r model_smoking$coef[1]` and the slope of `r model_smoking$coef[2]` over it.
 
-```{r q2_2}
-plot(data$cigs, data$bwght, xlab="number of cigarettes smoked by the mother each day during pregnacy",
+```{r q2_2, fig.height=3.5, fig.align='center'}
+plot(data$cigs, data$bwght,
+     xlab="number of cigarettes smoked by the mother each day during pregnacy",
      ylab="infant birth weight in ounces",
      main="Number of Cigarettes Smoked by Mother vs Infant Birth Weight")
 abline(model_smoking,col="blue",lwd=2)
 ```
 
+\newpage
 3. Examine the coefficients of your fitted model.  Explain, in particular, how to interpret the slope coefficient on cigs.  Is it practically significant?
 
 ```{r q3_1}
 model_smoking$coef
 ```
 
-The slope coefficient indicates that for each incremental cigarette that the mother smokes, the infant birth weight decreases by `r model_smoking$coef[2]` ounces.
+The slope coefficient indicates that for each incremental cigarette that the mother smokes, the infant birth weight decreases by `r abs(model_smoking$coef[2])` ounces.
 
 ```{r q3_2}
 model_smoking_r_sq = summary(model_smoking)$r.square
@@ -108,7 +119,8 @@ The model does not capture a causal relationship. Regression describe a dependen
 6. Does your scatterplot show evidence of measurement error in cigs?  If so, what does this say about the true relationship between cigarettes and birthweight?
 
 ```{r q6_1}
-plot(data$cigs, data$bwght, xlab="number of cigarettes smoked by the mother each day during pregnacy",
+plot(data$cigs, data$bwght,
+     xlab="number of cigarettes smoked by the mother each day during pregnacy",
      ylab="infant birth weight in ounces",
      main="Number of Cigarettes Smoked by Mother vs Infant Birth Weight")
 abline(model_smoking,col="blue",lwd=2)
@@ -134,7 +146,8 @@ x = 20
 The predicted birthweight when cigs is 20 is `r cig_20`.
 
 ```{r q7_3}
-plot(data$cigs, data$bwght, xlab="number of cigarettes smoked by the mother each day during pregnacy",
+plot(data$cigs, data$bwght,
+     xlab="number of cigarettes smoked by the mother each day during pregnacy",
      ylab="infant birth weight in ounces",
      main="Number of Cigarettes Smoked by Mother vs Infant Birth Weight")
 abline(model_smoking,col="blue",lwd=2)
@@ -159,4 +172,4 @@ q9 = (100 - model_smoking$coef[1])/model_smoking$coef[2]
 ```
 $$x_i = 38.5$$
 
-The mother would have to be smoking 38.5 cigarrets each day for the predicted birth hweight to be 100 ounces.
+The mother would have to be smoking 39 cigarrets each day for the predicted birth hweight to be 100 ounces.
