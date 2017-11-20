@@ -2,111 +2,68 @@
 title: "Lab 3: Hypothesis Tests about the Mean."
 subtitle: "w203: Statistics for Data Science"
 author: "Tako Hisada"
-date: "11/08/2017"
+date: "11/19/2017"
 output: pdf_document
 --- 
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Introduction
+
+In this assignment, we are analyzing a small subset of the 2012 ANES survey in understanding voter behaviors before and after the US presidential election in 2012.
 
 ## The Data
 
-The American National Election Studies (ANES) conducts surveys of voters in the United States before and after every presidential election.  You are given a small subset of the 2012 ANES survey, contained in the file ANES\_2012\_sel.csv.
-
-There are a number of special concerns that arise whenever statisticians work with survey data.  In particular, the complete ANES survey data assigns a survey weight to each observation, which corrects for differences in how likely individuals are to be selected, and how likely they are to respond.  For the purposes of this assignment, however, we have removed the survey weights and we ask you to assume that the observations you have are a random sample from the voting population.
-
-For a glimpse into some of the intricacies that go into survey design, take a look at the introduction to the ANES User's Guide and Codebook. 
-
+The American National Election Studies (ANES) conducts surveys of voters in the United States before and after every presidential election. The survey weights which are usually assigned to observations found in the ANES survey data have been removed and we are assuming that the data in the ANES\_2012\_sel.csv is a random sample from the voting population.
 
 ```{r load}
 S = read.csv("ANES_2012_sel.csv")
 ```
 
-Following is an example of a question asked on the ANES survey:
-
-Where would you place YOURSELF on this scale, or haven't you thought much about this?
-
-Possible answers included:
-
-- 1. Extremely liberal 
-- 2. Liberal 
-- 3. Slightly liberal 
-- 4. Moderate; middle of the road 
-- 5. Slightly conservative 
-- 6. Conservative 
-- 7. Extremely conservative
-- -2. Haven't thought much about this 
-- -8. Don't know 
-- -9. Refused
-
-The variable libcpre\_self records answers before the election, while libcpo\_self records answers after the election.
-
 # Analysis
 
 ## 1. Did voters become more liberal or more conservative during the 2012 election?
 
-### Analysis
-
-All survey responses can be forced into numeric values on the scale of 1-7, -2, -8 or -9.
+All survey responses for the variable S$libcpo_self can be forced into numeric values on the scale of 1-7, -2, -8 or -9.
 
 ```{r q1_1}
-table(S$libcpre_self, as.numeric(S$libcpre_self))
-n = length(S$libcpre_self)
+summary(factor(substr(S$libcpre_self, 1, 17)))
 ```
-
-Our n is `r n`.
 
 In order to measure where people stand on the political spectrum, however, the answers -2, -8 or -9 are not informative. Also because of the presence of these values, the numeric values assigned by R are off by 3 from the numbers present in the survey answer choices (i.e. R assigned 4 to "1. Extremely liberal").
 
 We need to re-assign values to match the survey answer choices and also 0 out the values for the choices -2, -8 and -9.
 
-```{r q1_2}
-# Function for generating political weights nulling invalid answers 
+```{r q1_2, fig.width=4, fig.height=3.0, fig.align='center'}
 compilePoliticalWeights <- function(v, offset, skip_null = TRUE) {
-  if(skip_null) {
+  if(skip_null)
     v = v[grepl("^(\\d{1})", v)]
-  }
   as.numeric(v)-offset  
 }
+
 libcpre_ranks <- compilePoliticalWeights(S$libcpre_self, 3)
-summary(libcpre_ranks)
 mu_libcpre <- mean(libcpre_ranks)
-
-# Define bins for political standing histograms
 bins_standing <- seq(from = min(libcpre_ranks), to = max(libcpre_ranks), by = 1)
-
-# Plot histogram
 hist(libcpre_ranks, main = "Pre-2012 Election Political Standing", 
      xlab = "Political Standing", breaks = bins_standing)
 ```
 
-Our $\mu$ pre 2012 election is `r mu_libcpre`.
+The pre-2012 election mean is `r mu_libcpre`.
 
-Likewise, we will need to do the same data sanitizing for the post-election data.
+Likewise, we will need to perform the same conversion for the post-election data.
 
 ```{r q1_3}
-table(S$libcpo_self, as.numeric(S$libcpo_self))
+summary(factor(substr(S$libcpo_self, 1, 17)))
 ```
 
-The data now contains 2 additional invalid values -6 and -7 in addition to -2, -8 and -9 we saw previously.
+The post-election data contains 2 more invalid values -6 and -7 in addition to -2, -8 and -9 we saw previously.
 
-```{r q1_4}
+```{r q1_4, fig.width=4, fig.height=2.9, fig.align='center'}
 libcpo_ranks <- compilePoliticalWeights(S$libcpo_self, 5)
-summary(libcpo_ranks)
 mu_libcpo = mean(libcpo_ranks)
-
-# Define bins for political standing histograms
-bins_standing <- seq(from = min(libcpo_ranks), to = max(libcpo_ranks), by = 1)
-
 hist(libcpo_ranks, main = "Post-2012 Election Political Standing", 
      xlab = "Political Standing", breaks = bins_standing)
 ```
 
-Our $\mu$ post 2012 election is `r mu_libcpo` which is slightly lower than before the election suggesting there were more people idntified with the liberal-side of the political spectrum.
+Our post 2012 election mean is `r mu_libcpo` which is slightly lower than before the election `r mu_libcpre` suggesting there were more people idntified with the liberal-side of the political spectrum.
 
 ### Hypotheses
 
@@ -130,40 +87,33 @@ Our data is ordinal. Therefore we should conduct a Wilcoxon test in determining 
 
 #### Result
 
-Our p-value is `r rs$p.value`. We fail to reject $H_0$. We are unable to say if people became more liberal nor conservative as a result of this.
+Our p-value is `r rs$p.value`. We fail to reject $H_0$. We are unable to say if people became more liberal nor conservative after the election.
 
 ### Practical Significance
 
-We are going to calculate Cohen's d to measure effect size. 
+We are now going to compute the correlation r to measure the effect size. 
 
 ```{r q1_6}
-calcPooledSd <- function(v1, v2) {
-  ((length(v1)-1)*sd(v1)^2 + (length(v2)-1)*sd(v2)^2)/(length(v1) + length(v2) - 2)
-}
-calcCohensD <- function(v1, v2) {
-  (mean(v1) - mean(v2))/calcPooledSd(v1, v2)
+calcEffectSize <- function(stat, n) {
+  r = qnorm(stat)/sqrt(n)
 }
 
-(d = calcCohensD(libcpre_ranks, libcpo_ranks))
+n = length(libcpre_ranks)+length(libcpo_ranks)
+(r = calcEffectSize(rs$p.value, n))
 ```
 
-The Cohen's d value for this case is `r d` which is $< 0.8$. There is no practical significance observed between $\mu_1$ and $\mu_2$.
+The r correlation for this case is `r r` which signifies a small negative correlation.
 
 ## 2. Were Republican voters (examine variable pid\_x) older or younger (variable dem\_age\_r\_x), on the average, than Democratic voters in 2012?
 
-```{r q2_1}
-# Define bins for voter age histograms
-bins_ages <- seq(from = 20, to = 100, by = 10)
-bins_ages <- c(18, bins_ages)
-
-# Extract Republican voters
+```{r q2_1, fig.width=4, fig.height=3, fig.align='center'}
 rep_ages <- S$dem_age_r_x[grep("republican", S$pid_x, ignore.case = T)]
 rep_ages <- rep_ages[is.numeric(rep_ages) & rep_ages >= 18]
 rep_ages_n = length(rep_ages)
 rep_age_mean = mean(rep_ages)
+bins_ages <- c(18, seq(from = 20, to = 100, by = 10))
 hist(rep_ages, main = "Republican Voter Age", xlab = "Age", breaks = bins_ages)
 
-# Extract Democratic voters
 dem_ages <- S$dem_age_r_x[grep("democrat", S$pid_x, ignore.case = T)]
 dem_ages <- dem_ages[is.numeric(dem_ages) & dem_ages >= 18]
 dem_ages_n = length(dem_ages)
@@ -171,7 +121,7 @@ dem_age_mean = mean(dem_ages)
 hist(dem_ages, main = "Democratic Voter Age", xlab = "Age", breaks = bins_ages)
 ```
 
-The average Republican voter age is `r rep_age_mean` which is in a little bit higher that that of the Democratic voeters' `r dem_age_mean`.
+The average Republican voter age is `r rep_age_mean` which is slightly higher than that of the Democratic voeters' `r dem_age_mean`.
 
 ### Hypotheses
 
@@ -187,7 +137,7 @@ $$H_1: \mu_1 - \mu_2 > 0$$
 
 #### Justificaition
 
-Our n for Republicans is `r rep_ages_n` and for Democrats is `r dem_ages_n`. The distributions are fairly normal as seen above and our n's are sufficiently large. We can conduct a t-test in determining if $\mu_1$ is in fact greater than $\mu_2$.
+Our n's are sufficiently high in this case: `r rep_ages_n` for Republicans and `r dem_ages_n` for Democrats. The distributions are fairly normal as seen above. We can conduct a t-test in determining if $\mu_1$ is in fact greater than $\mu_2$.
 
 ```{r q2_2}
 rs <- t.test(rep_ages, dem_ages, alternative = "greater")
@@ -196,17 +146,24 @@ p <- rs$p.value
 
 #### Result
 
-Our p-value is 0.0007. We can reject $H_0$ at a significance level of 0.05, 0.01 and 0.001.
+Our p-value is 0.0007. We can reject $H_0$ at a significance level of 0.05, 0.01 and 0.001. We can say with confidence that the average Republican voter age was higher than that of the Democratic voters.
 
 ### Practical Significance
 
 We are going to calculate Cohen's D to measure effect size. 
 
 ```{r q2_3}
+calcPooledSd <- function(v1, v2) {
+  ((length(v1)-1)*sd(v1)^2 + (length(v2)-1)*sd(v2)^2)/(length(v1) + length(v2) - 2)
+}
+calcCohensD <- function(v1, v2) {
+  (mean(v1) - mean(v2))/calcPooledSd(v1, v2)
+}
+
 (d = calcCohensD(rep_ages, dem_ages))
 ```
 
-The Cohen's d value for this case is `r d` which is $< 0.8$. There is no practical significance observed between $\mu_1$ and $\mu_2$.
+The Cohen's d value for this case is `r d`. There is very small practical significance observed.
 
 ## 3. Were Republican voters older than 51, on the average in 2012?
 
@@ -232,7 +189,7 @@ p <- rs$p.value
 
 #### Result
 
-Our p-value is `r p`. We fail to reject $H_0$ at a significance level of 0.05 or anything smaller.
+Our p-value is `r p`. We fail to reject $H_0$ at a significance level of 0.05 or anything smaller. We are unable to say Republican voters were older than 51 on average.
 
 ### Practical Significance
 
@@ -245,77 +202,60 @@ computeEffectSizeCorrelationR <- function(t, df) {
 r = computeEffectSizeCorrelationR(rs$statistic, rep_ages_n-1)
 ```
 
-The effect size correlation r for this case is `r r` which is $< 0.8$. There is no practical significance observed.
+The effect size correlation r for this case is `r r` which is $< 0.1$. The practical significance is very small.
 
 ## 4. Were Republican voters more likely to shift their political preferences right or left (more conservative or more liberal), compared to Democratic voters during the 2012 election?
 
-Let's compute how the average political standing changed for Republican voters.
+Let's compute how the average political standing change for Republican voters.
 
-```{r q4_1}
-# Pre-2012 election Republican voters
-libcpre_rep_ranks <-compilePoliticalWeights(
-  S$libcpre_self[grep("republican", S$pid_x, ignore.case = T)], 3)
-summary(libcpre_rep_ranks)
+```{r q4_1, fig.width=5, fig.height=3.0, fig.align='center'}
+calcDiff <- function(v1, v2, skip_null = TRUE) {
+  if(length(v1) != length(v2)) {
+    FALSE
+  }
+  v = c()
+  for(i in 1:length(v1)) {
+    if((v1[i] < 1 || v2[i] < 1) && skip_null) {
+      next
+    }
+    v = c(v, v1[i]-v2[i])
+  }
+  v
+}
+
+libcpre_rep_ranks <- compilePoliticalWeights(
+  S$libcpre_self[grep("republican", S$pid_x, ignore.case = T)], 3, FALSE)
 mu_libcpre_rep = mean(libcpre_rep_ranks)
-
-# Define bins for political standing histograms
-bins_standing <- seq(from = min(libcpre_rep_ranks), to = max(libcpre_rep_ranks), by = 1)
-
-hist(libcpre_rep_ranks, main = "Pre-2012 Election Political Standing for Republican Voters", 
-     xlab = "Political Standing", breaks = bins_standing)
-
-# Post-2012 election Republican voters
 libcpo_rep_ranks <-compilePoliticalWeights(
-  S$libcpo_self[grep("republican", S$pid_x, ignore.case = T)], 5)
-summary(libcpo_rep_ranks)
+  S$libcpo_self[grep("republican", S$pid_x, ignore.case = T)], 5, FALSE)
 mu_libcpo_rep = mean(libcpo_rep_ranks)
-
-# Define bins for political standing histograms
-bins_standing <- seq(from = min(libcpo_rep_ranks), to = max(libcpo_rep_ranks), by = 1)
-
-hist(libcpo_rep_ranks, main = "Post-2012 Election Political Standing for Republican Voters", 
-     xlab = "Political Standing", breaks = bins_standing)
-
-diff_lib_rep <- libcpo_rep_ranks - libcpre_rep_ranks
-(diff_mu_lib_rep <- mean(diff_lib_rep))
-
-(diff_mu_lib_rep = mu_libcpo_rep - mu_libcpre_rep)
+lib_diff_rep = calcDiff(libcpre_rep_ranks, libcpo_rep_ranks)
+mu_lib_diff_rep = mean(lib_diff_rep)
+bins_standing <- seq(from = min(lib_diff_rep), to = max(lib_diff_rep), by = 1)
+hist(lib_diff_rep,
+     main = "Election Political Standing Shift for Republican Voters", 
+     xlab = "Shift in Political Standing", breaks = bins_standing)
 ```
 
-The average political standing value post-2012 electioin is greater than pre-election by `r diff_mu_lib_rep`. This means that the Republican voters on average has become more conservative.
+The average political standing value post-2012 electioin is greater than pre-election by `r mu_lib_diff_rep`. This means that the Republican voters on average has become more conservative.
 
 Now let's do the same for Democratic voters.
 
-```{r q4_2}
-# Pre-2012 election Democratic voters
+```{r q4_2, fig.width=5, fig.height=3.0, fig.align='center'}
 libcpre_dem_ranks <-compilePoliticalWeights(
-  S$libcpre_self[grep("democrat", S$pid_x, ignore.case = T)], 3)
-summary(libcpre_dem_ranks)
+  S$libcpre_self[grep("democrat", S$pid_x, ignore.case = T)], 3, FALSE)
 mu_libcpre_dem <- mean(libcpre_dem_ranks)
-
-# Define bins for political standing histograms
-bins_standing <- seq(from = min(libcpre_dem_ranks), to = max(libcpre_dem_ranks), by = 1)
-
-hist(libcpre_dem_ranks, main = "Pre-2012 Election Political Standing for Democratic Voters", 
-     xlab = "Political Standing", breaks = bins_standing)
-
-# Post-2012 election Democratic voters
 libcpo_dem_ranks <-compilePoliticalWeights(
-  S$libcpo_self[grep("democrat", S$pid_x, ignore.case = T)], 5)
-summary(libcpo_dem_ranks)
+  S$libcpo_self[grep("democrat", S$pid_x, ignore.case = T)], 5, FALSE)
 mu_libcpo_dem <- mean(libcpo_dem_ranks)
-
-# Define bins for political standing histograms
-bins_standing <- seq(from = min(libcpo_dem_ranks), to = max(libcpo_dem_ranks), by = 1)
-
-hist(libcpo_dem_ranks, main = "Post-2012 Election Political Standing for Democratic Voters", 
-     xlab = "Political Standing", breaks = bins_standing)
-
-diff_lib_dem <- libcpo_dem_ranks - libcpre_dem_ranks
-(diff_mu_lib_dem <- mean(diff_lib_dem))
+lib_diff_dem = calcDiff(libcpre_dem_ranks, libcpo_dem_ranks)
+mu_lib_diff_dem = mean(lib_diff_dem)
+hist(lib_diff_dem,
+     main = "Election Political Standing Shift for Democratic Voters", 
+     xlab = "Shift in Political Standing", breaks = bins_standing)
 ```
 
-The average political standing value post-2012 electioin is smaller than pre-election by `r abs(diff_mu_lib_dem)`. This means that the Democratic voters on average has become more liberal.
+The average political standing value post-2012 electioin is smaller than pre-election by `r abs(mu_lib_diff_dem)`. This means that the Democratic voters on average has become more liberal.
 
 ### Hypotheses
 
@@ -325,49 +265,101 @@ $\mu_1$ = Average change in political standing for Republican voters\newline
 $\mu_2$ = Average change in political standing for Democratic voters
 
 $$H_0: \mu_1 - \mu_2 = 0$$
-$$H_1: \mu_1 - \mu_2 > 0$$
+$$H_1: \mu_1 - \mu_2 \neq 0$$
 
 ### Statistical Significance
 
 #### Justificaition
 
-The Republican distribution is negatively skewed while the Democratic distribution is positively skewed. Therefore we should not use the t-test in determining statistical significance even though our n's are sufficiently large. Instead, we will use the nonpametric Wilcoxon rank-sum test.
+As we are dealing with ordinal data, we will use the nonpametric Wilcoxon rank-sum test as we did for Q1.
 
 ```{r q4_3}
-?wilcox.test
-rs <- t.test(rep_ages, dem_ages, alternative = "greater")
+rs <- t.test(lib_diff_rep, lib_diff_dem, alternative = "two.sided")
 p <- rs$p.value
 ```
 
 #### Result
 
-Our p-value is 0.0007. We can reject $H_0$ at a significance level of 0.05, 0.01 and 0.001.
+Our p-value is 0.0288 We can reject $H_0$ at a significance level of 0.05, however not at 0.01. From this, we can say that the Republican voters were more likely to shift their political standing after the election than the Democratic voters.
 
 ### Practical Significance
 
 We are going to calculate Cohen's D to measure effect size. 
 
 ```{r q4_4}
-(d = calcCohensD(rep_ages, dem_ages))
+(d = calcCohensD(lib_diff_dem, lib_diff_rep))
 ```
 
-## 5. Select a fifth question that you are interested in investigating.
+The Cohen's d value for this case is `r d`. There is very small practical significance observed.
 
-Prepare a report addressing these questions.  A successful submission should include:
+## 5. Were flyover state voters less likely to approve Barack Obama's job as President compared to coastal state voters?
 
-1. A brief introduction.
+Approval rating of Barack Obama as President amongst Republican voters
 
-2. A suitable hypothesis test for each question above.
+```{r q5_1, fig.width=4, fig.height=3.0, fig.align='center'}
+summary(S$presapp_job_x)
+approval_rate = 100*length(S$presapp_job_x[grep('Approve', S$presapp_job_x)])/length(S$presapp_job_x)
+```
 
-3. For each test, include:
+Overall, it appears there were more people approved Barack Obama's job as President before the election in 2012 at the approval rate of `r round(approval_rate)`%. Now we will break this down by which region the voters reside.
 
-    + A brief exploratory analysis targetted to check the assumptions needed for your test.
+We'll first look at the coastal states voters.
 
-    + A justification for why the test is the most appropriate choice
+```{r q5_2, fig.width=6, fig.height=3.0, fig.align='center'}
+presapp_job_x_coast <- compilePoliticalWeights(
+  S$presapp_job_x[grep(
+    "New England|atlantic|Pacific", S$profile_region9, ignore.case = T)], 2)
+mu_presapp_job_x_coast <- mean(presapp_job_x_coast)
+bins_standing <- seq(from = min(presapp_job_x_coast), to = max(presapp_job_x_coast), by = 1)
+hist(presapp_job_x_coast, main = "Pre-2012 Election Approval Rating - Coastal States", 
+     xlab = "Approval Rating", breaks = bins_standing)
+```
 
-    + An explanation of test results, including *BOTH* statistical significance and practical significance.
+Now, we'll compile the approval rate for the flyover state voters.
 
-4. A brief conclusion with a few high-level takeaways.
+```{r q5_3, fig.width=6, fig.height=3.0, fig.align='center'}
+presapp_job_x_flyover <- compilePoliticalWeights(
+  S$presapp_job_x[grep("central|Mountain", S$profile_region9, ignore.case = T)], 2)
+mu_presapp_job_x_flyover <- mean(presapp_job_x_flyover)
+hist(presapp_job_x_flyover, main = "Pre-2012 Election Approval Rating - Flyover States", 
+     xlab = "Approval Rating", breaks = bins_standing)
+```
 
+### Hypotheses
 
-Please limit your submission to 10 pages.  Be sure to submit both your pdf report as well as your source file.
+From this, we can formulate our hypotheses as below:
+
+$\mu_1$ = Pre-2012 election approval rate of Barack Obama as President amongst flyover-state voters\newline
+$\mu_2$ = Pre-2012 election approval rate of Barack Obama as President amongst coastal-state voters
+
+$$H_0: \mu_1 - \mu_2 = 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+### Statistical Significance
+
+#### Justificaition
+
+Our data is ordinal. Therefore we should conduct a Wilcoxon test in determining if the means are different.
+
+```{r q5_4}
+(rs <- wilcox.test(presapp_job_x_flyover, presapp_job_x_coast, alternative = "greater"))
+```
+
+#### Result
+
+Our p-value is 0.000954. We can reject $H_0$ at a significance level of 0.05 and 0.01. We can say with confidence that the flyover state voters were less likley to approve Barack Obama's job as President. 
+
+### Practical Significance
+
+We are going to calculate correlation r to measure effect size. 
+
+```{r q5_5}
+n = length(presapp_job_x_flyover) + length(presapp_job_x_coast)
+(r = calcEffectSize(rs$p.value, n))
+```
+
+The correlation r for this case is `r r` which indicates a small negative effect size. There is no practical significance observed.
+
+# Conclusion
+
+When we look at overall numbers, Barack Obama had a positive approval rating of `r round(approval_rate)`% before the election. However, looking further, we see a noticeable discrepancy between regions in terms of approval for his job as President as we saw in Q5. It is also notable from Q1 and Q4 that even after Obama's victory, people for the most part remained divided and stuck with their political views. The analysis reveals a very divided view of the voters across the United States in terms of age (Q2 and Q3), political standings and where they live (Q5) which we saw further-accelerated and exploded in the subsequent presidential election in 2016.
