@@ -23,8 +23,8 @@ Here's a quick recap of the steps we took.
 First, we perform our basic setup and loading of data.
 
 ```{r results = "hide"}
-setwd("~/Desktop/data_w203")
-getwd()
+#setwd("~/Desktop/data_w203")
+#getwd()
 
 # We use the stargazer package to display nice regression tables.
 library(stargazer)
@@ -45,7 +45,7 @@ plot(jitter(data$ACT), jitter(data$colGPA), xlab = "ACT score", ylab = "College 
 (model1 = lm(colGPA ~ ACT, data = data))
 
 # Add regression line to scatterplot
-abline(model1)
+abline(model1, lwd=2)
 ```
 
 
@@ -148,6 +148,8 @@ We first examine the high school GPA variable.
 ```{r}
 summary(data$hsGPA)
 hist(data$hsGPA, breaks = 20)
+library(car)
+scatterplotMatrix(data[,c("colGPA", "ACT", "hsGPA")], diagonal = "histogram")
 ```
 
 We noticed that there is some negative skew.  There are no unusual peaks and all values are in the correct range from 0 to 4.  Even though the variable is attenuated
