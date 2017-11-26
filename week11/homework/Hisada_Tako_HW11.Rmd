@@ -2,56 +2,194 @@
 title: "HW week 11"
 subtitle: "w203: Statistics for Data Science"
 author: "Tako Hisada"
+date: "11/25/2017"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-### Get familiar with the data
+# 1. Get familiar with the data
 You receive a data set from World Bank Development Indicators. 
 
-  - Load the data using `load` and see what is loaded by using `ls()`. You should see `Data` which is the data frame including data, and `Descriptions` which is a data frame that includes variable names. 
+## Load the data using `load` and see what is loaded by using `ls()`. You should see `Data` which is the data frame including data, and `Descriptions` which is a data frame that includes variable names. 
 
-```{r q1}
+```{r q1_1}
 load('Week11.Rdata')
 ls(Data)
 ls(Definitions)
 ```
 
-  - Look at the variables, read their descriptions, and take a look at their histograms. Think about the transformations that you may need to use for these variables in the section below. 
-  - Run: `apply(!is.na(Data[,-(1:2)] ) , MARGIN= 2, mean )` and explain what it is showing.
-  - Can you include both `NE.IMP.GNFS.CD` and `NE.EXP.GNFS.CD` in the same OLS model? Why?
-  - Rename the variable named `AG.LND.FRST.ZS` to `forest.` This is going to be our dependent variable.
+## Look at the variables, read their descriptions, and take a look at their histograms. Think about the transformations that you may need to use for these variables in the section below. 
 
-
-```{r q1}
-library(car)
-?scatterplotMatrix
-scatterplotMatrix(Data[,c("Country.Name", "Country.Code", "AG.LND.FRST.ZS")], diagonal = "histogram", data=Data)
+```{r q1_2, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+displayHist <- function(x, apply_log=FALSE) {
+  title <- deparse(substitute(x))
+  if(apply_log) {
+    x <- log(x)
+  }
+  hist(x, main=title)
+}
+displayHist(Data$AG.LND.FRST.ZS)
+displayHist(Data$MS.MIL.MPRT.KD)
+displayHist(Data$MS.MIL.XPND.GD.ZS)
+displayHist(Data$MS.MIL.XPND.ZS)
+displayHist(Data$MS.MIL.XPRT.KD)
+displayHist(Data$NE.EXP.GNFS.CD)
+displayHist(Data$NE.IMP.GNFS.CD)
+displayHist(Data$NY.GDP.MKTP.CD)
+displayHist(Data$NY.GDP.PCAP.CD)
+displayHist(Data$NY.GDP.PETR.RT.ZS)
+displayHist(Data$TX.VAL.AGRI.ZS.UN)
 ```
 
-### Decribe a model for that predicts `forest`
+Also most of these variables contain very large numbers as they represent national-level data such as GDP for a given country and it might be helpful to reduce them to in terms of USD billions, etc.
 
-  - Write a model with two explanatory variables. 
-    - Create a residuals versus fitted values plot and assess whether your coefficients are unbiased.
-     - How many observations are being used in your analysis? 
-     - Are the countries that are dropping out dropping out by random chance? If not, what would this do to our inference? 
-  - Now add a third variable.
-  - Show how you would use the regression anatomy formula to compute the coefficient on your third variable.  First, regress the third variable on your first two variables and extract the residuals.  Next, regress forest on the residuals from the first stage.
-  - Compare your two models.
-      - Do you see an improvement? Explain how you can tell.
+Furthre more, aside from Data\$AG.LND.FRST.ZS, all the histograms look positively skewed. It may make sense to apply log\(\) depending on the analysis we need to conduct. 
 
-### Make up a country
+```{r q1_3, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+displayHist(Data$AG.LND.FRST.ZS, T)
+displayHist(Data$MS.MIL.MPRT.KD, T)
+displayHist(Data$MS.MIL.XPND.GD.ZS, T)
+displayHist(Data$MS.MIL.XPND.ZS, T)
+displayHist(Data$MS.MIL.XPRT.KD, T)
+displayHist(Data$NE.EXP.GNFS.CD, T)
+displayHist(Data$NE.IMP.GNFS.CD, T)
+displayHist(Data$NY.GDP.MKTP.CD, T)
+displayHist(Data$NY.GDP.PCAP.CD, T)
+displayHist(Data$NY.GDP.PETR.RT.ZS, T)
+displayHist(Data$TX.VAL.AGRI.ZS.UN, T)
+```
 
-  - Make up a country named `Mediland` which has every indicator set at the median value observed in the data. 
-  - How much forest would this country have?
-    
-### Take away
+The hisograms appear more normally distributed with log\(\) applied.
 
-  - What is the causal story, if any, that you can take away from the above analysis? Explain why.
+## Run: `apply(!is.na(Data[,-(1:2)] ) , MARGIN= 2, mean )` and explain what it is showing.
 
+```{r q1_4}
+apply(!is.na(Data[,-(1:2)] ) , MARGIN= 2, mean )
+```
 
+This calculates the inversed mean of all columns in the dataframe Data except for the first and second columns.
 
+Data[, -(1:2)] specifies all rows from all columns in the datafrmae except for the first and second columns.
 
+is.na() determines if the R object passed in is NA or not and returns TRUE if NA, FALSE if not. "!"" negates that and hence reverses the values.
+
+apply() applies mean() to to the output of !is.na(Data[,-(1:2)] ) by column. Because the output of !is.na(Data[,-(1:2)] ) is Boolean, the averages computed will be numbers between 0 and 1.
+
+## Can you include both `NE.IMP.GNFS.CD` and `NE.EXP.GNFS.CD` in the same OLS model? Why?
+
+```{r q1_5}
+summary(Data$NE.EXP.GNFS.CD)
+summary(Data$NE.IMP.GNFS.CD)
+Data$NE.EXP.GNFS.CD/Data$NE.IMP.GNFS.CD
+```
+
+Yes, `NE.IMP.GNFS.CD` and `NE.EXP.GNFS.CD` should be included as they are not exactly linearly related although their histograms are very similar and hence does not violate MLR Assumption 3 of no perfect collinearity.
+  
+## Rename the variable named `AG.LND.FRST.ZS` to `forest.` This is going to be our dependent variable.
+
+```{r q1_6}
+Data$forest. <- Data$AG.LND.FRST.ZS
+```
+
+Defined our dependent variable forest.
+
+# 2. Decribe a model for that predicts `forest`
+
+## Write a model with two explanatory variables. 
+
+### Create a residuals versus fitted values plot and assess whether your coefficients are unbiased.
+
+I am picking NY.GDP.MKTP.CD and NE.EXP.GNFS.CD as my independent variables.
+
+```{r q2_1}
+summary(Data$forest.)
+summary(Data$NY.GDP.MKTP.CD)
+summary(Data$NE.EXP.GNFS.CD)
+model = lm(forest. ~ NY.GDP.MKTP.CD + NE.EXP.GNFS.CD, data = Data)
+plot(model, which = 1, main = "MLR of Forest vs NY.GDP.MKTP.CD + NE.EXP.GNFS.CD")
+```
+
+Looking at the plot and the model, we know that the model has a linear relationship (MLR.1). We do not know much about how World Bank collects data and there may be some countries that are underrepresented which makes our assumption of random sampling a little bit questionable (MLR.2). Looking at the coefficients, we can say that the independent variables do not have perfect collinearity (MLR.3). The residuals are a little bit high on the left-hand side of the plot due to the outliers however for the most part are staying pretty closely to 0 (MLR. 4). We do not have any reason from the data given that we do not have homoskedasticity in this model. (MLR. 5). Therefore we can conclude that our coefficients are relatively unbiased although we may want to look further into how the data has been collected.
+
+### How many observations are being used in your analysis?
+
+```{r q2_2}
+n_data = length(Data$forest.)
+n_observations = length(model$fitted.values)
+```
+
+There are `r n_observations` observations that are used in the model while there were `r n_data` data points available in the data frame provided.
+
+### Are the countries that are dropping out dropping out by random chance? If not, what would this do to our inference? 
+
+```{r q2_3}
+Data$Country.Name[is.na(Data$forest.)]
+Data$Country.Name[is.na(Data$NY.GDP.MKTP.CD)]
+Data$Country.Name[is.na(Data$NE.EXP.GNFS.CD)]
+```
+
+We are omitting countries with NA values for the variables we are using. For the variable Data$forest, we see that the countries with limited land such as HK, Macao and Monaco tend to have NA. For Data\$NY.GDP.MKTP.CD and Data\$NE.EXP.GNFS.CD, we are seeing a very similar set of countries are being omitted such as small nations such as Nauru and San Marino, non-sovereign territories such as Guam, New Caledonia as well as countries that are currently in active conflicts such as Syrian Arab Republic. This may introduce biases into our analysis by undermining our MLR.2 assumption of random sampling.
+
+## Now add a third variable.
+
+I will add Data$MS.MIL.XPND.GD.ZS as my third variable.
+
+```{r q2_4}
+summary(Data$MS.MIL.XPND.GD.ZS)
+```
+
+### Show how you would use the regression anatomy formula to compute the coefficient on your third variable.  First, regress the third variable on your first two variables and extract the residuals.  Next, regress forest on the residuals from the first stage.
+
+```{r q2_5}
+# Regress the 3rd variable on the first 2
+model2 <- lm(MS.MIL.XPND.GD.ZS ~ NY.GDP.MKTP.CD + NE.EXP.GNFS.CD, data = Data)
+x_3 <- model2$residuals
+
+# Now regrest forest on the residuals
+# We have to omit NAs
+model3 <- lm(
+  forest.[!is.na(MS.MIL.XPND.GD.ZS) & !is.na(NY.GDP.MKTP.CD) & !is.na(NE.EXP.GNFS.CD)] ~ x_3,
+  data = Data)
+plot(model3, which = 1, main = "MLR of Forest vs NY.GDP.MKTP.CD + NE.EXP.GNFS.CD")
+plot(model, which = 5, main = "MLR of Forest vs NY.GDP.MKTP.CD + NE.EXP.GNFS.CD")
+plot(model3, which = 5, main = "MLR of Forest vs NY.GDP.MKTP.CD + NE.EXP.GNFS.CD")
+rsquare_model <- summary(model)$r.square
+rsquare_model3 <- summary(model3)$r.square
+AIC(model)
+AIC(model3)
+```
+
+### Compare your two models. Do you see an improvement? Explain how you can tell.
+
+Compared to the first model, we are seeing extrme outliers with large leverages on the left-hand side of the plot and the overall plot is more widely scattered on the x-axis and we are observing relatively large residuals on the right hand-side of the plot as well. Looking at Cook's distance, although neither one reaches Cook's distance value of 0.5, the second model actually approaches nearer to the dotted lines, indicating the presence of highly influential outliers.
+
+However, our R-square value has shown a significant increase from `r round(rsquare_model, 3)` to `r round(rsquare_model3, 3)`. This is reasonable and expected as we have introduced an additional independent variable. AIC is consistent with the R-squared result and is showing that our second model is a better model fit. 
+
+# 3. Make up a country
+
+## Make up a country named `Mediland` which has every indicator set at the median value observed in the data. 
+
+```{r q3_1}
+# Modify factors before inserting new row
+levels(Data$Country.Name) <- c(levels(Data$Country.Name), 'Mediland')
+levels(Data$Country.Code) <- c(levels(Data$Country.Code), 'MED')
+
+# Insert new rot for Mediland into dataframe Data
+medians <- apply(Data[,-(1:2)], MARGIN= 2, median, na.rm = TRUE )
+medians <- c('Mediland', 'MED', medians)
+n = length(Data$Country.Code)
+Data <- rbind(Data[1:n,],medians,Data[-(1:n),])
+```
+
+## How much forest would this country have?
+
+```{r q3_2}
+median_forest = Data$forest.[Data$Country.Name == 'Mediland']
+```
+
+Mediland would have `r round(as.numeric(median_forest), 3)`% forest area.
+
+# 4. Take away
+
+## What is the causal story, if any, that you can take away from the above analysis? Explain why.
+
+The R-squared value of our second model was `r round(rsquare_model3, 3)` indicating the proportion that the explanatory variables Data\$NY.GDP.MKTP.CD, Data\$NE.EXP.GNFS.CD and Data\$MS.MIL.XPND.GD.ZS together were responsible for in the variation of Data\$forest. Interstingly, adding Data\$MS.MIL.XPND.GD.ZS increased the number considerably, suggesting the amount of military expenditure having a high impact on the forest area. Overall, however, there are numerous factors that go into determining how much forest area a given country has and this model only explains a relatively small portion of it. Also, as we have seen in Q2, there may be some countries that tend to be omitted and hence this may not constitute random sampling which may make our OLS biased.
