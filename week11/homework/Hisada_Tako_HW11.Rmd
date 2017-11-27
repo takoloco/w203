@@ -108,7 +108,7 @@ model = lm(forest. ~ NY.GDP.MKTP.CD + NE.EXP.GNFS.CD, data = Data)
 plot(model, which = 1, main = "MLR of Forest vs NY.GDP.MKTP.CD + NE.EXP.GNFS.CD")
 ```
 
-Looking at the plot and the model, we know that the model has a linear relationship (MLR.1). We do not know much about how World Bank collects data and there may be some countries that are underrepresented which makes our assumption of random sampling a little bit questionable (MLR.2). Looking at the coefficients, we can say that the independent variables do not have perfect collinearity (MLR.3). The residuals are a little bit high on the left-hand side of the plot due to the outliers however for the most part are staying pretty closely to 0 (MLR. 4). We do not have any reason from the data given that we do not have homoskedasticity in this model. (MLR. 5). Therefore we can conclude that our coefficients are relatively unbiased although we may want to look further into how the data has been collected.
+Looking at the plot and the model, we know that the model has a linear relationship (MLR.1). We do not know much about how World Bank collects data and there may be some countries that are underrepresented which makes our assumption of random sampling a little bit questionable (MLR.2). Looking at the coefficients, we can say that the independent variables do not have perfect collinearity (MLR.3). The residuals are a little bit high on the left-hand side of the plot due to the outliers however for the most part are staying pretty closely to 0 (MLR. 4). Therefore we can conclude that our coefficients are relatively unbiased although we may want to look further into how the data has been collected.
 
 ### How many observations are being used in your analysis?
 
