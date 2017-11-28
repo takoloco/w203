@@ -1,0 +1,115 @@
+---
+title: "HW week 12"
+subtitle: "w203: Statistics for Data Science"
+author: "Tako Hisada"
+date: "11/27/2017"
+output: pdf_document
+---
+
+# OLS Inference
+
+The file videos.txt contains data scraped from Youtube.com.
+
+```{r load}
+Data = read.csv('videos.txt', header=TRUE, sep='\t')
+summary(Data)
+(n = nrow(Data))
+```
+
+# 1. Fit a linear model predicting the number of views (views), from the length of a video (length) and its average user rating (rate).
+
+We can formulate our model as below:
+
+$$views = \beta_0 + \beta_1length + \beta_2rate + u$$
+
+We'll first analyze histograms of the 3 variables Data$views, Data$length and Data$rate.
+
+```{r q1_1}
+par(mfrow=c(2,2))
+hist(Data$views)
+hist(Data$length)
+hist(Data$rate)
+```
+
+Data$views, Data$length are positively skewed while Data$rate has upticks on the both ends of the X-axis with a drop in the middle.
+
+```{r q1_2}
+par(mfrow=c(2,2))
+hist(log(Data$views))
+hist(log(Data$length))
+hist(log(Data$rate))
+```
+
+Applying log(), the distributions for Data\$views and Data\$length have become much more normal. However, log(Data\$rate) is still negatively skewed. Also, Data\$rate is an ordinal variable and contains a number of 0 values which actually have a meaning so it does not make sense to apply log().
+
+From this, we will modify our model as below:
+
+$$log(views) = \beta_0 + log(\beta_1length) + \beta_2rate + u$$
+
+```{r q1_3}
+model1 <- lm(log(views) ~ log(length) + rate, data = Data, na.action = na.omit)
+summary(model1)
+```
+
+We are seeing that our p-values are statistically significant which is a good sign.
+
+# 2. Using diagnostic plots, background knowledge, and statistical tests, assess all 6 assumptions of the CLM.  When an assumption is violated, state what response you will take.
+
+## MLR.1 Linear in Parameters
+
+Our model is defined as below which is a linear model:
+
+$$log(views) = \beta_0 + log(\beta_1length) + \beta_2rate + u$$
+
+## MLR.2 Random Sampling
+
+The data provided is scraped from youtube.com. It has not been made clear how exactly the data has been collected and hence is difficult to say if it is randomly sampled or not. In case our sampling method is not random, we could employ methods such as bootstrapping to achieve random sampling as our n is sufficiently large.
+
+## MLR.3 No Perfect Collinearity
+
+We will analyze the VIF:
+
+```{r q2_1}
+library(car)
+vif(model1)
+```
+
+The VIF is < 4 which is consistent with R not flagging perfect multicollinearity.
+
+## MLR.4 Zero Conditional Mean
+
+n is `r n`. Our n is sufficiently large.
+
+```{r q2_2}
+par(mfrow=c(2,2))
+plot(model1)
+```
+
+Looking at the Residuals vs Fitted plot, the red line is pretty flat around the x-axis except towards the right-hand-side of the x-axis where it starts to point downwards which might be influenced by some of the extreme outliers. We can omit the extreme values or perhaps transform the model by not applying log().
+
+```{r q2_3, fig.align='center', fig.height=3, fig.width=4}
+model2 <- lm(views ~ length + rate, data = Data, na.action = na.omit)
+plot(model2, which = 1)
+```
+
+The red line is completely flat on the x-axis and achieves zero conditional mean.
+
+## MLR.5 Homoskedasticity
+
+Looking again at the Residuals vs Fitted plot, the band of the plot is relatively even although it it a little bit heavier on the right-hand-side and lighter in the middle. As we can see from the plot above, the band is more even compared to the model without log().
+
+We may want to look into using heteroskedasticity-robust standard errors as it is not completely even.
+
+## MLR.6 Normality of Errors
+
+Looking at the Normal Q-Q plot, we see that the points are on the line, suggesting we have normality. Also our n is considerably larger than 30 and hence we can also use CLT to assume that our OLS coefficients have a normal sampling distribution.
+
+# 3. Generate a printout of your model coefficients, complete with standard errors that are valid given your diagnostics.  Comment on both the practical and statistical significance of your coefficients.
+
+```{r q3_1}
+result <- summary(model1)
+```
+
+The p-values suggest our variables log(length) and rate are statistically significant at the 0.1% significance level.
+
+In terms of practical significance, $log(length) = 0.10539$. This means 1% increase in length will result in 0.1% increase in Views which seems relatively trivial. On the other hand, an incremental increase in Data\$rate will result in 0.46708 = 47% increase in views which is quite significant.
