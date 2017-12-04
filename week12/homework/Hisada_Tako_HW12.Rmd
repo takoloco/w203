@@ -2,7 +2,7 @@
 title: "HW week 12"
 subtitle: "w203: Statistics for Data Science"
 author: "Tako Hisada"
-date: "11/27/2017"
+date: "12/03/2017"
 output: pdf_document
 ---
 
@@ -63,7 +63,7 @@ $$log(views) = \beta_0 + log(\beta_1length) + \beta_2rate + u$$
 
 ## MLR.2 Random Sampling
 
-The data provided is scraped from youtube.com. It has not been made clear how exactly the data has been collected and hence is difficult to say if it is randomly sampled or not. In case our sampling method is not random, we could employ methods such as bootstrapping to achieve random sampling as our n is sufficiently large.
+The data provided is scraped from youtube.com. It has not been made clear how exactly the data was collected and hence is difficult to say if it is randomly sampled or not. In case our sampling method is not random, we could employ methods such as bootstrapping to achieve random sampling as our n is sufficiently large.
 
 ## MLR.3 No Perfect Collinearity
 
@@ -85,7 +85,9 @@ par(mfrow=c(2,2))
 plot(model1)
 ```
 
-Looking at the Residuals vs Fitted plot, the red line is pretty flat around the x-axis except towards the right-hand-side of the x-axis where it starts to point downwards which might be influenced by some of the extreme outliers. We can omit the extreme values or perhaps transform the model by not applying log().
+Looking at the Residuals vs Fitted plot, the red line is pretty flat around the x-axis except towards the right-hand-side of the x-axis where it starts to point downwards which might be influenced by some of the extreme outliers. One thing we can do is to omit extreme outliers.
+
+We could also transform the model by not applying log() as below:
 
 ```{r q2_3, fig.align='center', fig.height=3, fig.width=4}
 model2 <- lm(views ~ length + rate, data = Data, na.action = na.omit)
@@ -102,12 +104,12 @@ We may want to look into using heteroskedasticity-robust standard errors as it i
 
 ## MLR.6 Normality of Errors
 
-Looking at the Normal Q-Q plot, we see that the points are on the line, suggesting we have normality. Also our n is considerably larger than 30 and hence we can also use CLT to assume that our OLS coefficients have a normal sampling distribution.
+Looking at the Normal Q-Q plot, we see that the points are on the line, suggesting we have normality. Also our n is considerably larger than 30 and hence we can also use CLT to assume that our OLS coefficients have normal distributions.
 
 # 3. Generate a printout of your model coefficients, complete with standard errors that are valid given your diagnostics.  Comment on both the practical and statistical significance of your coefficients.
 
 ```{r q3_1}
-result <- summary(model1)
+(result <- summary(model1))
 ```
 
 The p-values suggest our variables log(length) and rate are statistically significant at the 0.1% significance level.
