@@ -1,0 +1,16 @@
+---
+title: "Live Session - Week 14"
+author: "Tako Hisada"
+date: "12/11/2017"
+output: pdf_document
+---
+
+```{r q1}
+load('htv.RData')
+true_model <- lm(wage ~ educ + abil, data = data)
+summary(true_model)
+model2 <- lm(abil ~ educ, data = data)
+summary(model2)
+model3 <- lm(abil ~ educ, data = data)
+summary(model3)
+```
