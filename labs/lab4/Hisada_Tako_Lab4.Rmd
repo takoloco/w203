@@ -1,0 +1,624 @@
+---
+title: "W203-2, Week 15, Lab 4"
+author: "Tako Hisada"
+date: "12/17/2017"
+output:
+  pdf_document:
+    fig_caption: yes
+  word_document: default
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.pos = 'H')
+```
+
+```{r init}
+library(car)
+library(lmtest)
+library(sandwich)
+library(stargazer)
+```
+# Introduction
+
+The United States is known to have the highest prison population in the world. Our team has been hired by a political campaign to provide research in identifying factors that influence the probability of getting sentenced (\emph{probsen}) for the offences committed. By identifying these factors, the team hopes to help the campaign formulate possible legislative actions that the government could undertake in reducing such crimes and hence the number of inmates in the prisons.
+
+# Initial exploratory analysis
+
+The file crime.csv contains crime statistics for a selection of counties. While it is possible that there are factors not included in the dataset that are contributing to jail sentences, we have a pretty comprehensive set of variables given in the dataset ranging from crime, geography, economic, and demographics of the counties included in the dataset each of which we will delve into shortly.
+
+```{r eda_1}
+Data <- read.csv('crime_v2_updated.csv')
+head(Data)
+
+n <- nrow(Data)
+num_cols <- ncol(Data)
+```
+head() confirms that the data has been succesfully loaded. The dataset contains `r num_cols` columns (variables) and `r n` rows. This is sufficiently large enough to assume CLT. 
+
+```{r eda_2}
+# Check for NAs
+for(i in names(Data)){
+  val <- Data[[i]][is.na(Data[[i]])]
+  if(length(val)) {
+    sprintf("%s: %d NA row(s) found", i, length(val))
+  }
+}
+```
+
+No NAs are found in the dataset given.
+
+## Individual variable analysis
+
+### X 
+
+This is just an index variable and hence no analysis is required.
+
+### Country identifier 
+
+This is just an identifier and hence no analysis is required.
+
+### Year 
+
+This is just the year when this data was collected and it is simply 88 for all rows. No analysis requried.
+
+### Crime committed per person
+```{r var_crime, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$crime, main = "crime")
+hist(log(Data$crime), main = "Log of crime")
+```
+The histogram is positively skewed. No extreme outliers observed. The histogram becomes more normal when log() is applied.
+
+### 'Probability' of arrest
+```{r var_probarr, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$probarr, main = "probarr")
+hist(log(Data$probarr), main = "Log of probarr")
+```
+The histogram is relatively normal. No extreme outliers observed.  The histogram actually becomes less normal when log() is applied.
+
+### 'Probability' of conviction
+```{r q2_4, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$probconv, main = "probconv")
+hist(log(Data$probconv), main = "Log of probconv")
+(length(Data$probconv[Data$probconv > 1]))
+```
+
+The histogram is positively skewed with extreme outliers (10 items over 1). The histogram becomes more normal when log() is applied.
+
+### 'Probability' of prison sentence
+
+```{r q2_5, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$probsen, main = "probsen")
+hist(log(Data$probsen), main = "Log of probsen")
+(length(Data$probsen[Data$probsen > 1]))
+```
+
+The histogram is relatively normal with an exception of one extreme outlier (10 items over 1).  The histogram becomes more normal when log() is applied.
+
+### Avg. sentence, days
+
+```{r q2_6, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$avgsen, main = "Avg. sentence, days")
+(length(Data$probsen[Data$avgsen > 20]))
+hist(log(Data$avgsen), main = "Log of avg. sentence, days")
+```
+
+The histogram is slightly positively skewed with 1 outlier (20 >). The histogram becomes more normal when log() is applied.
+
+### Police per capita
+
+```{r q2_7, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$police, main = "Police per capita")
+(length(Data$probsen[Data$police > 0.009]))
+hist(log(Data$police), main = "Log of police per capita")
+```
+
+The histogram is positively skewed with 1 outlier.  The histogram becomes slightly more normal when log() is applied.
+
+### People per sq. mile
+
+```{r q2_8, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$density, main = "People per sq. mile")
+hist(log(Data$density), main = "Log of people per sq. mile")
+```
+
+The histogram is positively skewed.  The histogram becomes more normal when log() is applied.
+
+### Tax revenue per capita
+
+```{r q2_9, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$tax, main = "Tax revenue per capita")
+hist(log(Data$tax), main = "Log of tax")
+```
+
+The histogram is positively skewed. The histogram becomes slightly more normal when log() is applied however is still positively skewed.
+
+### West/Central/Urban
+
+```{r q2_10, fig.align='center', fig.height=3, fig.width=4, fig.show='hold'}
+barplot(c(sum(Data$west), sum(Data$central), sum(Data$urban)), 
+        names.arg = c("West", "Central", "Urban"), main = "Part of the state counties are in")
+sum_geo <- sum(Data$west) + sum(Data$central) + sum(Data$urban)
+```
+
+Dummy variables indicating whether or not a given county is in the western/central/urban part of the state. Interestingly, the sum of the 3 regions only add up to `r sum_geo` which is considerably less than our n of `r n`. There are many `r n - sum_geo` counties in the dataset do not fall under any of these regions.
+
+### Proportion that is minority or nonwhite
+
+```{r q2_11, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$pctmin, main = "pctmin")
+hist(log(Data$pctmin), main = "Log of pctmin")
+```
+
+The histogram is positively skewed. The histogram becomes more normal when log() is applied althogh it is still negatively skewed.
+
+### Weekly wage, construction
+
+```{r q2_12, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wagecon, main = "wagecon")
+hist(log(Data$wagecon), main = "Log of wagecon")
+```
+
+The histogram is pretty normal. The histogram becomes more normal when log() is applied.
+
+### Weekly wage, transportation, utilities, communications
+
+```{r q2_13, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wagetuc, main = "wagetuc")
+```
+
+The histogram is relatively normal.
+
+### Weekly wage, wholesale, retail trade
+
+```{r q2_14, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wagetrd, main = "wagetrd")
+```
+
+The histogram is relatively normal with some outliers.
+
+### Weekly wage, finance, insurance and real estate
+
+```{r q2_15, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wagefir, main = "wagefir")
+```
+
+The histogram is relatively normal.
+
+### Weekly wage, service industry
+
+```{r q2_16, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wageser, main = "wageser")
+hist(log(Data$wageser), main = "Log of wageser")
+max(Data$wageser)
+```
+
+The histogram is positively skewed with one extreme outlier.  The histogram becomes slightly more normal when log() is applied.
+
+### Weekly wage, manufacturing
+
+```{r q2_17, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wagemfg, main = "wagemfg")
+```
+
+The histogram is relatively normal but with some outiers.
+
+### Weekly wage, federal employees
+
+```{r q2_18, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wagefed, main = "wagefed")
+```
+
+The histogram is relatively normal.
+
+### Weekly wage, local government employees
+
+```{r q2_19, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$wageloc, main = "wageloc")
+```
+
+The histogram is pretty normal.
+
+### Ratio of face to face/all other crimes
+
+```{r q2_20, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$mix, main = "mix")
+hist(log(Data$mix), main = "Log of mix")
+```
+
+The histogram is positively skewed. The histogram becomes more normal when log() is applied.
+
+### Proportion of county males between the ages of 15 and 24
+
+```{r q2_21, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+hist(Data$ymale, main = "ymale")
+hist(log(Data$ymale), main = "Log of ymale")
+```
+
+The histogram is positively skewed. The histogram becomes more normal when log() is applied however it is still positively skewed.
+
+## Variable transformations
+
+\emph{probarr} and \emph{probsen} contain values > 1 which are difficult to intrepret. For the purpose of the study, I am omitting them.
+
+```{r adjust_vars_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+D <- Data[Data$probarr < 1 & Data$probsen < 1,]
+hist(D$probarr, main = "probarr - Adjusted")
+hist(D$probsen, main = "probsen - Adjusted")
+hist(log(D$probsen), main = "Log of probsen - Adjusted")
+```
+
+Without the outliers, the 2 histograms are looking relatively normal. \emph{probsen} is still looking positively skewed so I am taking the log of it which makes the distribution more normal.
+
+Now I will apply log() to the below variables as they are not very normally distributed and store them in the newly created dataframe D so they will be available for my models.
+
+```{r adjust_vars_2}
+D$logcrime <- log(D$crime)
+D$logavgsen <- log(D$avgsen)
+D$logpolice <- log(D$police)
+D$logprobconv <- log(D$probconv)
+D$logprobsen <- log(D$probsen)
+D$logdensity <- log(D$density)
+D$logtax <- log(D$tax)
+D$logpctmin <- log(D$pctmin)
+D$logwagecon <- log(D$wagecon)
+D$logwageser <- log(D$wageser)
+D$logmix <- log(D$mix)
+D$logymale <- log(D$ymale)
+```
+
+# Models
+
+The team wants to explore how much is accounted for by the crime and police-related variables such as number of crimes committed (\emph{crime}), police per capita (\emph{police}) and ratio of face-to-face/all other crimes (\emph{mix}) and how much of it can be attributed to other demographic variables such as race, gender, age, economic standings (wages).
+
+## Proposed Model 1 - Minimum specification
+
+\textbf{Crime-related variables}: We can intuitively anticipate \emph{probsen} to go up as \emph{crime}, \emph{police} and \emph{mix} increase. My intuition would be \emph{probsen} and \emph{avgsen} to have a positive correlation as increased \emph{avgsen} would suggest there would be more severe crimes happening in a given county.
+
+\textbf{Probability variables}: I expect the other 2 probability variables \emph{probarr} and \emph{probconv} to have strong correlations with probsen and hence they will also be included in the model so we can measure how much influence the other variables have on \emph{probsen} holding \emph{probarr} and \emph{probconv} fixed. 
+
+For this initial model, I will exclude other demographic variables.
+
+$$log(probsen) = \beta_0 + \beta_1log(crime) + \beta_2probarr + \beta_3log(probconv) + \beta_4log(avgsen)$$
+$$+ \beta_5log(police) + \beta_6log(mix) + u$$
+
+```{r model_1}
+model1 <- lm(logprobsen ~ logcrime + probarr + logprobconv + logavgsen + logpolice + logmix, data = D)
+```
+
+### CLM Assessment
+
+#### CLM 1 - A linear model
+
+The model is specified such that the dependent variable is a linear function of the explanatory variables.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 2 - Random samling
+
+As the dataset has been provided for a selection of counties, the data is not truly randomly sampled. We are not given much information about how the data in the CSV file has been collected. We will assume here that the data has been collected from the relevant random samples in these counties.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 3 - Multicollinearity
+
+```{r clm_3_1}
+X <- data.matrix(subset(
+  D, select = c("logprobsen", "logcrime", "probarr", "logprobconv", "logavgsen", "logpolice", "logmix")))
+(Cor = cor(X))
+```
+
+We are not seeing any obvious signs of multicollinearity. We will now compute VIF.
+
+```{r clm_3_2}
+vif(model1)
+```
+
+The VIF is < 4 and R is not flagging perfect multicollinearity.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 4 - Zero conditional mean
+
+We'll now plot our model in order to assess if the model has zero conditional mean.
+
+```{r clm_4_1, fig.align='center', fig.height=3, fig.width=4, fig.show='hold'}
+plot(model1, which=1)
+```
+
+The red line is staying relatively close to the X-axis for the most part although it is influenced by the outliers on the ends.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 5 - Homoscedasticity
+
+We will use the same plot to assess the model's homoscedasticity.
+
+```{r clm_5_1, fig.align='center', fig.height=3, fig.width=4, fig.show='hold'}
+plot(model1, which=1)
+```
+
+The plot is relatively scattered about the fitted values with some extreme outliers. It is a little bit difficult to determine if we have achieved homoscedasticity from this plot alone. We will run a couple of additional tests to determine the homoscedasticity of the model.
+
+```{r clm_5_2}
+bptest(model1)
+ncvTest(model1)
+```
+
+Neither test is showing a small enough P-value suggesting we fail to reject the null hypothesis of homoscedasticity. Therefore we most likely have homoscedasticity however looking at the plot, it is a little bit questionable.
+
+Is the assumption valid? \textbf{Most likely}
+
+#### CLM 6 - Normality of residuals
+
+We will now lok at the QQ-plot to assess the normality of residuals.
+
+```{r clm_6_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model1, which=2)
+hist(model1$residuals, main="Residuals")
+```
+
+The values are staying close to the slope for the most part however are deviating on both ends. However the distribution of the residuals is relatively normal and our sample size n is `r n` and hence CLM 6 is achieved.
+
+Is the assumption valid? \textbf{Yes}
+
+### Cook's distance
+
+```{r m1_cook_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model1, which = 4)
+plot(model1, which = 5)
+```
+There is a influencial value at 50 however it is still well within the bounds of Cook's distance.
+
+### AIC
+
+```{r m1_aic_1}
+(model1$AIC <- AIC(model1))
+```
+
+The AIC for this model is `r model1$AIC`.
+
+## Propposed Model #2 - Optimal specification
+
+In addition to the set of explanatory variables introduced in Proposed Model #1, I have decided to include the following variables in this model:
+
+\textbf{Demographics variables}: I am interested to see if demographics information such as race, gender and age would influence the probability of prison sentence and therefore including \emph{pctmin}, \emph{ymale} in this model.
+
+\textbf{Density}: I suspect population density would have a negative influence on \emph{probsen} by introducing more complexity in crimes.
+
+\textbf{Tax}: I anticipate \emph{tax} would have a negative coefficient as people with more money would be able to afford better lawyers and hence would have lower chances of ending up with prison sentences.
+
+$$log(probsen) = \beta_0 + \beta_1log(crime) + \beta_2probarr + \beta_3log(probconv) + \beta_4log(avgsen) + \beta_5log(police)$$
+$$+ \beta6log(density) + \beta7log(tax) + \beta8log(pctmin) + \beta9log(mix) + \beta10log(ymale) + u$$
+
+```{r model_2}
+model2 <- lm(logprobsen ~ logcrime + probarr + logprobconv + logavgsen + logpolice
+             + logdensity + logtax + logpctmin + logmix + logymale, data = D)
+```
+
+Holding the other variables such as other probabilities such as probarr and probconv, crime-related variables such as log(crime) and log(police), we can see pctmin and ymale as well as pctmin:ymale are actually statistically significant.
+
+It is interesting that including probarr and probconv reduces the stastical significance of the covariate mix drastically.
+
+```{r model_2_1}
+model2_1 <- lm(mix ~ probarr + probconv, data = D)
+summary(model2_1)
+```
+Regressing on probarr and probconv, R-squared shows 0.107, indicating that probarr and probconv are accountable for 10.7% of the variance in the variable mix.
+
+### CLM
+
+No change in CLM1-2.
+
+#### CLM 3 - Multicollinearity
+
+We'll compute VIF 
+
+```{r m2_clm_3_1}
+vif(model2)
+```
+
+VIF is flagging pctmin, ymale and pctmin:ymale which is expected as pctmin:ymale is an interaction term made up of pctmin and ymale.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 4 - Zero conditional mean
+
+We'll now plot our model in order to assess if the model has zero conditional mean.
+
+```{r m2_clm_4_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model2, which=1)
+```
+
+The fitted line is staying relatively close to the X-axis for the most part however is influenced by the outliers on the both sides.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 5 - Homoscedasticity
+
+The plot is relatively distributed evenly about the fitted values.
+
+```{r clmm2_clm_5_1}
+bptest(model2)
+```
+
+Checking the BP test result, the P-value is not small enough to reject the null hypothesis of homoscedasticity. 
+
+Is the assumption valid? \textbf{Most likely}
+
+#### CLM 6 - Normality of residuals
+
+We will now lok at the QQ-plot to assess the normality of residuals.
+
+```{r m2_clm_6_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model2, which=2)
+hist(model2$residuals, main = "Residuals")
+```
+
+The both plots are showing we have normality of residuals.
+
+Is the assumption valid? \textbf{Yes}
+
+### Cook's distance
+
+```{r m2_cook_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model2, which = 4)
+plot(model2, which = 5)
+```
+There is a influencial value at 59 however it is still well within the bounds of Cook's distance.
+
+### AIC
+
+```{r m2_aic_1}
+(model2$AIC <- AIC(model2))
+```
+
+The AIC for this model is `r model2$AIC` which is lower compared to model 1 indicating this is an improved model.
+
+## Proposed Model 3 - Comprehensive specification
+
+This model includes all variables present in the dataset to show the robustness of my modeling process and the underlying assumptions to model specification.
+
+$$log(probsen) = \beta_0 + \beta_1log(crime) + \beta_2probarr + \beta_3log(probconv) + \beta_4log(avgsen) + \beta_5log(police)$$
+$$+ \beta6log(density) + \beta7log(tax) + \beta8log(pctmin) + \beta9log(mix) + \beta10log(ymale)$$
+$$+ \beta11west + \beta12central + \beta13urabn + \beta14log(wagecon) + \beta15wagetuc + \beta16wagetrd$$
+$$+ \beta17wagefir + \beta18log(wageser) + \beta19wagemfg + \beta20wagefed + \beta21wagesta + \beta22wageloc + u$$
+
+```{r model_3}
+model3 <- lm(logprobsen ~ logcrime + probarr + logprobconv + logavgsen + logpolice
+             + logdensity + logtax + logpctmin + logmix + logymale + west + central + urban
+             + logwagecon + wagetuc + wagetrd + wagefir + logwageser + wagemfg + wagefed
+             + wagesta + wageloc, data = D)
+```
+### CLM
+
+No change in CLM1-2.
+
+#### CLM 3 - Multicollinearity
+
+We'll compute VIF 
+
+```{r m3_clm_3_1}
+vif(model3)
+```
+
+All the values are < 10.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 4 - Zero conditional mean
+
+We'll now plot our model in order to assess if the model has zero conditional mean.
+
+```{r m3_clm_4_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model3, which=1)
+```
+
+The fitted line is staying relatively close to the X-axis for the most part.
+
+Is the assumption valid? \textbf{Yes}
+
+#### CLM 5 - Homoscedasticity
+
+The plot is relatively distributed evenly about the fitted values.
+
+```{r m3_clm_5_2}
+bptest(model3)
+```
+
+Checking the BP test result, the P-value is not small enough to reject the null hypothesis of homoscedasticity. 
+
+Is the assumption valid? \textbf{Most likely}
+
+#### CLM 6 - Normality of residuals
+
+```{r m3_clm_6_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model3, which=2)
+hist(model3$residuals, main = "Residuals")
+```
+
+The both plots are showing we have normality of residuals.
+
+Is the assumption valid? \textbf{Yes}
+
+### Cook's distance
+
+```{r m3_cook_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+plot(model3, which = 4)
+plot(model3, which = 5)
+```
+
+There are some spikes however they are still well within the bounds of Cook's distance.
+
+### AIC
+
+```{r m3_aic_1}
+(model3$AIC <- AIC(model3))
+```
+
+The AIC for this model is `r model3$AIC` which is the highest of the 3 models.
+
+# Model Adjustments
+
+We will now be adjusting the models in order as there were some CLM assumptions that were violated or not entirely met.
+
+In order to address the possible violations of CLM 5 Homoscedasticity assumption, we will be converting our coefficients using heteroscedasticity robust standard errors.
+
+## Model 1
+
+```{r m1_adjust_1}
+model1$coefficients
+(model1$adjusted_coefficients <- sqrt(diag(vcovHC(model1))))
+```
+
+## Model 2
+
+```{r m2_adjust_2}
+model2$coefficients
+(model2$adjusted_coefficients <- sqrt(diag(vcovHC(model2))))
+```
+
+## Model 3
+
+```{r m3_adjust_2}
+model3$coefficients
+(model3$adjusted_coefficients <- sqrt(diag(vcovHC(model3))))
+```
+
+# Model Analysis
+
+```{r regression_table, results = 'asis'}
+stargazer(model1, model2, model3, omit.stat = "f", header=FALSE, 
+          title = "Models for predicting probability of prison sentences",
+          se = 
+            list(model1$adjusted_coefficients, model2$adjusted_coefficients,
+                 model3$adjusted_coefficients),
+          star.cutoffs = c(0.05, 0.01, 0.001), no.space = TRUE)
+```
+
+\newpage
+
+## Model 1
+
+\emph{logcrime}, \emph{logmix} and \emph{logprobconv} have very small P-values suggesting strong stastical significance. Interestingly, all the original co-efficients except for logmix are negative contrary to my initial hypothesis. 1% increase in \emph{logcrime} and \emph{logprobconv} results in -30.4% and -20.1% impact on the dependent variable \emph{probsen} which are both practically significant. Once adjusted using robust standard errors, all the co-efficients became positive.
+
+Adjusted $R^2$ is 0.475 which is the lowest of the 3 models, explanining 47.5% of the variation in \emph{log(probsen)}.
+
+## Model 2
+
+In addition to \emph{logcrime}, \emph{logmix}, \emph{logprobconv} and \emph{logpctmin} has a P-value < 0.05 in this model. It has a positive coefficient indicating in 1% increase in \emph{logpctmin} will translate into 10.5% increase in \emph{probsen} which is a practically significant result.
+
+Adjusted $R^2$ is 0.515 which is the highest of the 3 models, explanining 51.5% of the variation in \emph{log(probsen)}. The model also has the lowest AIC of the 3 models at 26.701 indicating this is the best model of the 3 according to Akaike’s Information Criterion.
+
+## Model 3
+
+The same set of variables as Model 2, \emph{logcrime}, \emph{logmix}, \emph{logprobconv} and \emph{logpctmin} are showing statistical significance although not as strongly. One thing to note is that the co-efficient values for the statistically significant covariates in this model appear to be larger in the magnitude and hence practical significance than those of Model 2. For example, \emph{logcrime} is showing -0.498 which is greater vs -0.412 for Model 2.
+
+Adjusted $R^2$ is 0.503 which is the second highest of the 3 models, explanining 50.3% of the variation in \emph{log(probsen)}. The model also has the highest AIC of the 3 models at 37.995 indicating this is the worst model of the 3 according to Akaike’s Information Criterion.
+
+# Causality
+
+Our models show the following variables have strong influence over the variance in our dependent variable \emph{probsen}: \emph{logcrime}, \emph{logmix}, \emph{logprobconv} and \emph{logpctmin}. Of these, 
+
+# Conclusion
+
+
