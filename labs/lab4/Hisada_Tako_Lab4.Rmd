@@ -238,7 +238,7 @@ The histogram is positively skewed. The histogram becomes more normal when log()
 
 ## Variable transformations
 
-\emph{probarr} and \emph{probsen} contain values > 1 which are difficult to intrepret. For the purpose of the study, I am omitting them.
+\emph{probarr} and \emph{probsen} contain values > 1 which are difficult to intrepret. We are omitting them from our analysis.
 
 ```{r adjust_vars_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
 D <- Data[Data$probarr < 1 & Data$probsen < 1,]
@@ -247,9 +247,9 @@ hist(D$probsen, main = "probsen - Adjusted")
 hist(log(D$probsen), main = "Log of probsen - Adjusted")
 ```
 
-Without the outliers, the 2 histograms are looking relatively normal. \emph{probsen} is still looking positively skewed so I am taking the log of it which makes the distribution more normal.
+Without the outliers, the 2 histograms are looking relatively normal. \emph{probsen} is still looking positively skewed so we are taking the log of it which makes the distribution more normal.
 
-Now I will apply log() to the below variables as they are not very normally distributed and store them in the newly created dataframe D so they will be available for my models.
+Now we will apply log() to the below variables as they are not very normally distributed and store them in the newly created dataframe D so they will be available for later analysis.
 
 ```{r adjust_vars_2}
 D$logcrime <- log(D$crime)
@@ -276,7 +276,7 @@ The team wants to explore how much is accounted for by the crime and police-rela
 
 \textbf{Probability variables}: I expect the other 2 probability variables \emph{probarr} and \emph{probconv} to have strong correlations with probsen and hence they will also be included in the model so we can measure how much influence the other variables have on \emph{probsen} holding \emph{probarr} and \emph{probconv} fixed. 
 
-For this initial model, I will exclude other demographic variables.
+For this initial model, we will exclude the other demographic variables.
 
 $$log(probsen) = \beta_0 + \beta_1log(crime) + \beta_2probarr + \beta_3log(probconv) + \beta_4log(avgsen)$$
 $$+ \beta_5log(police) + \beta_6log(mix) + u$$
@@ -290,6 +290,12 @@ model1 <- lm(logprobsen ~ logcrime + probarr + logprobconv + logavgsen + logpoli
 #### CLM 1 - A linear model
 
 The model is specified such that the dependent variable is a linear function of the explanatory variables.
+
+```{r clm_1_1, fig.align='center', fig.height=3, fig.width=4, fig.show='hold'}
+plot(model1, which=1)
+```
+
+Ther is no non-linear relationship observed in the Residuals vs Fitted plot.
 
 Is the assumption valid? \textbf{Yes}
 
@@ -379,13 +385,13 @@ The AIC for this model is `r model1$AIC`.
 
 ## Propposed Model #2 - Optimal specification
 
-In addition to the set of explanatory variables introduced in Proposed Model #1, I have decided to include the following variables in this model:
+In addition to the set of explanatory variables introduced in Proposed Model #1, we have decided to include the following variables in this model:
 
-\textbf{Demographics variables}: I am interested to see if demographics information such as race, gender and age would influence the probability of prison sentence and therefore including \emph{pctmin}, \emph{ymale} in this model.
+\textbf{Demographics variables}: The team is interested to see if demographics information such as race, gender and age would influence the probability of prison sentence. We are including \emph{pctmin}, \emph{ymale} in this model to assess this.
 
-\textbf{Density}: I suspect population density would have a negative influence on \emph{probsen} by introducing more complexity in crimes.
+\textbf{Density}: The team suspects population density would have a negative influence on \emph{probsen} by introducing more complexity in crimes.
 
-\textbf{Tax}: I anticipate \emph{tax} would have a negative coefficient as people with more money would be able to afford better lawyers and hence would have lower chances of ending up with prison sentences.
+\textbf{Tax}: The team anticipate \emph{tax} would have a negative coefficient as higher tax revenue usually suggests people have more money. People with more money are typically able to afford better lawyers and hence would have lower chances of ending up with prison sentences.
 
 $$log(probsen) = \beta_0 + \beta_1log(crime) + \beta_2probarr + \beta_3log(probconv) + \beta_4log(avgsen) + \beta_5log(police)$$
 $$+ \beta6log(density) + \beta7log(tax) + \beta8log(pctmin) + \beta9log(mix) + \beta10log(ymale) + u$$
@@ -394,16 +400,6 @@ $$+ \beta6log(density) + \beta7log(tax) + \beta8log(pctmin) + \beta9log(mix) + \
 model2 <- lm(logprobsen ~ logcrime + probarr + logprobconv + logavgsen + logpolice
              + logdensity + logtax + logpctmin + logmix + logymale, data = D)
 ```
-
-Holding the other variables such as other probabilities such as probarr and probconv, crime-related variables such as log(crime) and log(police), we can see pctmin and ymale as well as pctmin:ymale are actually statistically significant.
-
-It is interesting that including probarr and probconv reduces the stastical significance of the covariate mix drastically.
-
-```{r model_2_1}
-model2_1 <- lm(mix ~ probarr + probconv, data = D)
-summary(model2_1)
-```
-Regressing on probarr and probconv, R-squared shows 0.107, indicating that probarr and probconv are accountable for 10.7% of the variance in the variable mix.
 
 ### CLM
 
@@ -417,7 +413,7 @@ We'll compute VIF
 vif(model2)
 ```
 
-VIF is flagging pctmin, ymale and pctmin:ymale which is expected as pctmin:ymale is an interaction term made up of pctmin and ymale.
+All computed VIF values are < 4.
 
 Is the assumption valid? \textbf{Yes}
 
@@ -425,7 +421,7 @@ Is the assumption valid? \textbf{Yes}
 
 We'll now plot our model in order to assess if the model has zero conditional mean.
 
-```{r m2_clm_4_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+```{r m2_clm_4_1, fig.align='center', fig.height=3, fig.width=4, fig.show='hold'}
 plot(model2, which=1)
 ```
 
@@ -509,7 +505,7 @@ Is the assumption valid? \textbf{Yes}
 
 We'll now plot our model in order to assess if the model has zero conditional mean.
 
-```{r m3_clm_4_1, fig.align='center', fig.height=3, fig.width=3, fig.show='hold'}
+```{r m3_clm_4_1, fig.align='center', fig.height=3, fig.width=4, fig.show='hold'}
 plot(model3, which=1)
 ```
 
@@ -555,34 +551,42 @@ There are some spikes however they are still well within the bounds of Cook's di
 (model3$AIC <- AIC(model3))
 ```
 
-The AIC for this model is `r model3$AIC` which is the highest of the 3 models.
+The AIC for this model is `r model3$AIC` which is the highest of the 3 models, suggesting this is not a very good model according to AIC.
 
 # Model Adjustments
 
 We will now be adjusting the models in order as there were some CLM assumptions that were violated or not entirely met.
 
-In order to address the possible violations of CLM 5 Homoscedasticity assumption, we will be converting our coefficients using heteroscedasticity robust standard errors.
+## CLM 4 - Zero conditional mean
 
-## Model 1
+The fitted value plots for some of our models showed curvature towards the ends most likely influenced by outliers. Since our sample size n is relatively large, we may be able to use MLR 4' Zero mean and zero correlation (exogenity) instead of the standard CLM 4 assumption in order to address this violation.
+
+## CLM 5 - Homoscedasticity
+
+In order to address the possible violations of CLM 5 Homoscedasticity assumption, we will calculate heteroscedasticity robust standard errors.
+
+### Model 1
 
 ```{r m1_adjust_1}
-model1$coefficients
-(model1$adjusted_coefficients <- sqrt(diag(vcovHC(model1))))
+coef(summary(model1))[, 2]
+(model1$se.adjusted <- sqrt(diag(vcovHC(model1))))
 ```
 
-## Model 2
+### Model 2
 
 ```{r m2_adjust_2}
-model2$coefficients
-(model2$adjusted_coefficients <- sqrt(diag(vcovHC(model2))))
+coef(summary(model2))[, 2]
+(model2$se.adjusted <- sqrt(diag(vcovHC(model2))))
 ```
 
-## Model 3
+### Model 3
 
 ```{r m3_adjust_2}
-model3$coefficients
-(model3$adjusted_coefficients <- sqrt(diag(vcovHC(model3))))
+coef(summary(model3))[, 2]
+(model3$se.adjusted <- sqrt(diag(vcovHC(model3))))
 ```
+
+Heteroscedasticity robust standard errors tend to be more conservative. You can confirm by looking at the values of the robust standard errors which tend to be larger than those of the original standard errors.
 
 # Model Analysis
 
@@ -590,8 +594,8 @@ model3$coefficients
 stargazer(model1, model2, model3, omit.stat = "f", header=FALSE, 
           title = "Models for predicting probability of prison sentences",
           se = 
-            list(model1$adjusted_coefficients, model2$adjusted_coefficients,
-                 model3$adjusted_coefficients),
+            list(model1$se.adjusted, model2$se.adjusted,
+                 model3$se.adjusted),
           star.cutoffs = c(0.05, 0.01, 0.001), no.space = TRUE)
 ```
 
@@ -599,7 +603,7 @@ stargazer(model1, model2, model3, omit.stat = "f", header=FALSE,
 
 ## Model 1
 
-\emph{logcrime}, \emph{logmix} and \emph{logprobconv} have very small P-values suggesting strong stastical significance. Interestingly, all the original co-efficients except for logmix are negative contrary to my initial hypothesis. 1% increase in \emph{logcrime} and \emph{logprobconv} results in -30.4% and -20.1% impact on the dependent variable \emph{probsen} which are both practically significant. Once adjusted using robust standard errors, all the co-efficients became positive.
+\emph{logcrime}, \emph{logmix} and \emph{logprobconv} have very small P-values suggesting strong stastical significance. Contrary to my initial hypothesis, all the original co-efficients except for logmix are negative. 1% increase in \emph{logcrime} and \emph{logprobconv} results in -30.4% and -20.1% impact on the dependent variable \emph{probsen} which are both practically significant.
 
 Adjusted $R^2$ is 0.475 which is the lowest of the 3 models, explanining 47.5% of the variation in \emph{log(probsen)}.
 
@@ -617,8 +621,27 @@ Adjusted $R^2$ is 0.503 which is the second highest of the 3 models, explanining
 
 # Causality
 
-Our models show the following variables have strong influence over the variance in our dependent variable \emph{probsen}: \emph{logcrime}, \emph{logmix}, \emph{logprobconv} and \emph{logpctmin}. Of these, 
+Our current models account for roughly 50% of variance in the dependent variable \emph{probsen} with the following variables having the most prominent influence: \emph{logcrime}, \emph{logmix}, \emph{logprobconv} and \emph{logpctmin}.
+
+Interestingly, the 2 most statistically significant explanatory variables \emph{logcrime} and \emph{logprobconv} have negative coefficients suggesting that increase in these variables would result in a decrease in \emph{logprobsen}. Some of the possible causes of this maybe overcrowding of the local prisons or the local judical system and police force being overworked and not working effectively. We are unable to determine what is causing this seemingly counterintuitive phenemenon from the data given.
+
+On the other hand, \emph{logmix} and \emph{logpctmin} have positive coefficients suggesting increase in them would yield higher \emph{probsen}. It is easy to see why \emph{mix}, the ratio of face to face/all other crimes, would produce this result as face-to-face crimes are clearly easier to prosecute. Although it is not as statistically nor practically significant, \emph{logpolice} also has a positive coefficient suggesting more eyes in the field may produce safer communities. The fact \emph{logpctmin} has a positive coefficient suggests that there may be a prejudice in our judical system that are biased against people of certain races or people of certain races are more likely to be involved in serious crimes that end up in prison sentences.
+
+## Omitted variable bias
+
+For this research, since we were given a set of variables to work with in a CSV file rather than identifying and collecting relevant data ourselves, it is quite possible we have a case of omitted variable bias. For example, our original dataset did not contain any data on poverty rate which may have been useful. The wage* variables are informative in learning the economic standings of those that work in a given sector, however, they do not tell anything about those without jobs who may be involved in crimes. Also, the dataset did not contain much demographic data other than \emph{pctmin} and \emph {ymale} which report the proportion that is minority or nonwhite and} and the proportion of county males between the ages of 15-24 respectively. More comprehensive demographic data such as more comprehensive age and gender data, ratio of immigrants and people's educational backgrounds may have been resourceful in designing a more exhaustive model.
+
+## Selection bias
+
+In the dataset included in crime.csv, there were 90 rows each representing a county. The data was collected, hand-picked and given to us for the purpose of the research and we assumed that the dataset represents a fair representation of the relevant counties for the political campaign. However, we cannot deny the possibility that there may have been a selection bias in choosing which counties to include.
 
 # Conclusion
 
+Our models suggest that face-to-face crimes \emph{logmix} and minorities \emph{logpctmin} are amongst the key positively contributing factors in the variance of our dependent variable \emph{logprobsen}. More patrols and surveillance cameras in the areas where moniroity population is predominant may help mitigate the number of offenses that will end up in prison sentences.
 
+Another interesting finding was that the counties with high crime and conviction rates actually have a lower probability of prison sentence. This may be due to the fact that the judical and system and the police force in the counties with high \emph{crime} and \{emph{probconv} are working at full capacity and are not able to conduct through investigations failing to land cases in prison sentences. It could also be the case that the prisons in the area may be simply full due to the high crime rate and are not accepting as many incoming inmates. A more funding to research the current state of the local judical system including the prisons and the police force may be a good starting point in shedding light on this phenomenon.
+
+Based on these, our proposals for the campaign are as follow:
+
+1. Increase the number of patrols by the police and surveillance cameras in the communities with high face-to-face crime rates with an emphasis on nonwhite neighborhoods
+2. Conduct a study on the counties with high crime rates and conviction rates and why the crimes committed in these counties are not resulting in as many prison sentences
